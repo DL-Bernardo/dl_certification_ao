@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <!-- Formulário de conta com campos customizados -->
+    <record id="view_account_account_form_custom" model="ir.ui.view">
+      <field name="name">account.account.form.custom</field>
+      <field name="model">account.account</field>
+      <field name="inherit_id" ref="account.view_account_form"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='code']" position="after">
+          <field name="tipo_conta"/>
+          <field name="parent_id"/>
+          <field name="taxonomia_id"/>
+        </xpath>
+      </field>
+    </record>
+
+    <!-- Vista de árvore hierárquica do plano de contas -->
+    <record id="view_account_account_tree_hierarchy" model="ir.ui.view">
+      <field name="name">account.account.tree.hierarchy</field>
+      <field name="model">account.account</field>
+      <field name="arch" type="xml">
+        <tree string="Plano de Contas">
+          <field name="code"/>
+          <field name="name"/>
+          <field name="tipo_conta"/>
+          <field name="parent_id" optional="hide"/>
+          <field name="account_type"/>
+          <field name="company_id" groups="base.group_multi_company"/>
+        </tree>
+      </field>
+    </record>
+
+  </data>
+</odoo>

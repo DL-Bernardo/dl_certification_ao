@@ -1,0 +1,12 @@
+<odoo>
+    <record model="ir.ui.view" id="view_out_invoice_tree_seq">
+        <field name="name">account.move.seq.tree</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+        </field>
+    </record>
+</odoo>

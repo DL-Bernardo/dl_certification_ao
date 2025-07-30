@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <menuitem name="Finanças"
+                  id="financas_menu"
+                  parent="base.menu_custom"
+                  sequence="10"/>
+
+        <menuitem name="Pedidos AT"
+                  action="pedidos_financas_action"
+                  id="pedidos_financas_menu"
+                  parent="financas_menu"
+                  sequence="11"/>
+
+        <menuitem name="Utilizadores Finanças"
+                  action="utilizador_financas_action"
+                  id="utilizador_financas_menu"
+                  parent="financas_menu"
+                  sequence="10"/>
+
+
+
+</odoo>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- PEDIR CODIGO AT -->
+        <record id="call_at_wiz" model="ir.ui.view">
+            <field name="name">Call AT</field>
+            <field name="model">call.at.wiz</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="data" required="1" readonly="resultado != False"/>
+                    </group>
+                    <field name="resultado" readonly="1"/>
+                    <footer>
+                        <button name="call_at_multi" string="Fazer Pedido" type="object"
+                                class="btn-primary" invisible="resultado != False"/>
+                        <button string="Fechar" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

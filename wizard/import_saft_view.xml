@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+	
+        <!-- vista do assistente -->
+        <record id="wizard_import_saft_pt" model="ir.ui.view">
+            <field name="name">Import Standard Audit File</field>
+            <field name="model">wizard.l10n_pt.import.saft</field>
+            <field name="arch" type="xml">
+                <form string="Importar SAFT-PT">
+                    <field name="state" invisible="1"/>
+                    <group invisible="state != 'choose'">
+                        <group>
+                            <separator string="Import SAFT-PT"/>
+                            <field name="comp" widget="selection"/>
+                            <field name="versao" invisible="1"/>
+                            <field name="partes"/>
+                            <field name="rollback"/>
+                            <field name="tipo" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="file" filename="filename"/>
+                            <field name="filename" invisible="1"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'get'">
+                        <separator string="Pronto"/>
+                        <field name="name"/>
+                        <field name="erros"/>
+                        <p>Importação terminada.</p>
+                    </group>
+                    <footer>
+                        <button icon="fa-close" name="act_cancel" special="cancel" string="Cancelar" type="object"
+                                invisible="state != 'choose'"/>
+                        <button icon="fa-arrow-right" name="act_getfile" string="Importar" type="object"
+                                invisible="state != 'choose'"/>
+                        <button icon="fa-close" string="Fechar" class="btn-secondary" special="cancel"
+                                invisible="state == 'choose'"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_wizard_import_saft" model="ir.actions.act_window">
+            <field name="name">Importar ficheiro SAFT</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">wizard.l10n_pt.import.saft</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem action="action_wizard_import_saft"
+                  id="menu_wizard_import_saft"
+                  parent="opc_certification_ao_v17.menu_wizard_saft_pai"
+                  sequence="2"/>
+
+    </data>
+</odoo>

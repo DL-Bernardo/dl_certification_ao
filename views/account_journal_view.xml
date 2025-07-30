@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_journal_form_seq" model="ir.ui.view">
+        <field name="name">account.journal.seq</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Inserir uma nova página com campos e botão -->
+            <xpath expr="//page[last()]" position="after">
+                <page string="Sequências / SAFT">
+                    <group>
+                        <group string="Configuração SAFT">
+                            <field name="por_defeito"/>
+                            <field name="allow_date"/>
+                            <field name="paga_me"/>
+                            <field name="manual"/>
+                            <field name="integrado"/>
+                            <field name="transaction_type"/>
+                            <field name="saft_inv_type"/>
+                            <field name="self_billing"/>
+                        </group>
+
+                        <group string="Ação">
+                            <button name="action_open_sequence_wizard"
+                                    type="object"
+                                    string="Configurar Sequência"
+                                    class="btn-primary"
+                                    icon="fa-cogs"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

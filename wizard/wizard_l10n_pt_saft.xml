@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="wizard_saft_pt" model="ir.ui.view">
+            <field name="name">Export Standard Audit File</field>
+            <field name="model">wizard.l10n_pt.saft</field>
+            <field name="arch" type="xml">
+                <form string="Gerar SAFT-AO">
+                    <field name="state" invisible="1"/>
+                    <group invisible="state != 'choose'">
+                        <separator string="Export SAFT-PT"/>
+                        <field name="comp" widget="selection"/>
+                        <field name="date_inicio" required="1"/>
+                        <field name="date_fim" required="1"/>
+                        <field name="tipo"/>
+                    </group>
+                    <group invisible="state != 'get'">
+                        <separator string="Pronto"/>
+                        <p>Guarde o ficheiro saft carregando aqui:</p>
+                        <field name="filedata" nolabel="1" readonly="1" filename="name"/>
+                        <field name="name" invisible="1"/>
+                        <field name="info" widget="html" readonly="1"/>
+                    </group>
+                    <footer>
+                        <button icon="fa-close" name="act_cancel" special="cancel" string="Cancelar" type="object"
+                                invisible="state != 'choose'"/>
+                        <button icon="fa-arrow-right" name="act_getfile" string="Exportar" type="object"
+                                invisible="state != 'choose'"/>
+                        <button icon="fa-close" name="act_destroy" special="cancel" string="Fechar" type="object"
+                                invisible="state != 'get'"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_wizard_saft" model="ir.actions.act_window">
+            <field name="name">Exportar ficheiro SAFT</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">wizard.l10n_pt.saft</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem action="action_wizard_saft"
+                  id="menu_wizard_saft"
+                  parent="opc_certification_ao_v17.menu_wizard_saft_pai"
+                  sequence="1"/>
+
+    </data>
+</odoo>
