@@ -1,4 +1,7 @@
-from odoo import models
+import logging
+from odoo import models, _
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountMoveReversal(models.TransientModel):
@@ -8,8 +11,19 @@ class AccountMoveReversal(models.TransientModel):
         """ Set reason cancel on credit note """
         res = super()._prepare_default_reversal(move)
         type = 'Anulação'
-        if self.refund_method == 'refund':
+
+        refund_method = ''
+        if hasattr(self, 'refund_choice'):
+            refund_method = self.refund_choice
+        elif hasattr(self, 'refund_method'):
+            # Fallback for older/custom versions
+            refund_method = self.refund_method
+        else:
+            _logger.warning("Could not determine refund method: 'refund_choice' or 'refund_method' not found on account.move.reversal wizard.")
+
+        if refund_method == 'refund':
             type = 'Rectificação'
+
         new_origin = ''
         contador = 0
         for moves in self.move_ids:

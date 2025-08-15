@@ -228,7 +228,7 @@ class SaleOrder(models.Model):
                 number = sale_order.name
                 totalbruto = sale_order.amount_total
                 # get data de criacao da empresa da base de dados para os files temporarios
-                nemp = _(sale_order.company_id.create_date)
+                nemp = str(sale_order.company_id.create_date)
                 nemp = nemp.replace(" ", "").replace(".", "").replace(":", "").replace("-", "")
                 identi = nemp + str(self._uid) + "so"
                 # verificar se é o primeiro documento

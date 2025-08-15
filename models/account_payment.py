@@ -125,9 +125,9 @@ class AccountPayment(models.Model):
         for payment in self:
             # verificar se é a primeira factura ou nota de credito
             ano = payment.date.year
-            data_inicio = '01-01-' + _(ano)
+            data_inicio = '01-01-' + str(ano)
             data_inicio = datetime.strptime(data_inicio, '%d-%m-%Y')
-            data_fim = '31-12-' + _(ano)
+            data_fim = '31-12-' + str(ano)
             data_fim = datetime.strptime(data_fim, '%d-%m-%Y')
             numHash = self.env['account.payment'].search_count([
                 ('partner_type', '=', payment.partner_type),
@@ -218,5 +218,6 @@ class AccountPayment(models.Model):
                 # FIM ATCUD#
 
             super(AccountPayment, payment).action_post()
-            if payment.partner_id:
+            # Only create hash for vendor payments, not customer receipts.
+            if payment.payment_type == 'outbound' and payment.partner_type == 'supplier':
                 payment.create_hash()

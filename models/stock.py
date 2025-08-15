@@ -410,7 +410,7 @@ class StockPicking(models.Model):
                     picking.veiculo = por_defeito_matricula
                 linhas = ""
                 # get linhas de produtos ("Artigo de Testes" 10 "UND" 6)
-                for move_lines in picking.move_lines:
+                for move_lines in picking.move_ids:
                     if not move_lines.order_references or doc_tipo != 'GT':
                         order_references = ''
                     else:  # so se tiver e se for GT
@@ -486,7 +486,7 @@ class StockPicking(models.Model):
                     raise UserError(_('Para validar a guia, o campo "Procura Inicial" tem de ser superior a 0.'))
 
         for pick in self:
-            if len(pick.move_lines) > 0:
+            if len(pick.move_ids) > 0:
                 tipo = 'internal'
                 if pick.picking_type_id and pick.picking_type_id.code == 'outgoing':
                     tipo = 'out'

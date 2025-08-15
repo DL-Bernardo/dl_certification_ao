@@ -46,5 +46,31 @@
             <field name="allow_date" eval="False"/>
         </record>
 
+        <!-- Set SAFT type for the main Customer Invoice journal -->
+        <function model="account.journal" name="write">
+            <value model="account.journal" eval="obj().search([('type', '=', 'sale'), ('company_id', '=', ref('base.main_company'))], limit=1).ids"/>
+            <value eval="{'saft_inv_type': 'FT'}" />
+        </function>
+
+        <!-- Journal for Invoice-Receipts -->
+        <record id="journal_fr" model="account.journal">
+            <field name="name">Fatura-Recibo</field>
+            <field name="code">FR</field>
+            <field name="type">sale</field>
+            <field name="saft_inv_type">FR</field>
+            <field name="refund_sequence" eval="True"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Journal for Credit Notes -->
+        <record id="journal_nc" model="account.journal">
+            <field name="name">Nota de Crédito</field>
+            <field name="code">NC</field>
+            <field name="type">sale</field>
+            <field name="saft_inv_type">NC</field>
+            <field name="refund_sequence" eval="True"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
     </data>
 </odoo>

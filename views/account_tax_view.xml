@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_tax_form_saft" model="ir.ui.view">
+            <field name="name">account.tax.form.saft</field>
+            <field name="model">account.tax</field>
+            <field name="inherit_id" ref="account.view_tax_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Dados SAFT">
+                        <group>
+                            <group string="Dados Saft">
+                                <field name="country_region"/>
+                                <field name="saft_tax_type"/>
+                                <field name="saft_tax_code"/>
+                                <field name="expiration_date"/>
+                                <field name="exemption_reason"/>
+                                <field name="autoliquidacao"/>
+                            </group>
+                        </group>
+                    </page>
+                </xpath>
+                <field name="include_base_amount" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

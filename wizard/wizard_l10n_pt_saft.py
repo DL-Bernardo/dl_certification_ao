@@ -148,7 +148,6 @@ class WizardSaft(models.Model):
                     country_code = 'AO'
             i = et.SubElement(xml_address, el)
             i.text = txt
-            i.tail = '\n'
 
         xml_contacts = et.Element('PhoneFaxMail')
 
@@ -202,21 +201,20 @@ class WizardSaft(models.Model):
 
         root = et.Element("AuditFile", attrib=attrib)
         header = et.SubElement(root, 'Header', xmlns=xmlns)
-        header.tail = '\n'
 
         # master
         master = self._get_masters()
         root.append(master)
 
         for element in (header, master):
-            element.tail = '\n'
+            pass
 
         # entries : exclui na facturação
         if self.tipo in ('C', 'I'):
             entries = self._get_entries()
             root.append(entries)
             for element in entries:
-                element.tail = '\n'
+                pass
 
         et.SubElement(header, 'AuditFileVersion').text = "1.01_01"
 
@@ -270,7 +268,7 @@ class WizardSaft(models.Model):
         if partner_company.website:
             et.SubElement(header, 'Website').text = partner_company.website
         for element in header.getchildren():
-            element.tail = '\n'
+            pass
 
         nome_file_2 = self.comp and self.comp.name
         nome_file_3 = str(self.date_inicio) or ''
@@ -310,7 +308,6 @@ class WizardSaft(models.Model):
         _logger.info("saft :", ' A exportar MasterFiles')
         xmlns = "urn:OECD:StandardAuditFile-Tax:AO_01_01"
         master = et.Element('MasterFiles', xmlns=xmlns)
-        master.tail = '\n'
         # 2.1 GeneralLedger
         # obtem lista de contas com movimentos, com saldos 99de abertura
         # precisa obter contas-mãe para cada cta de movimento
@@ -353,7 +350,6 @@ class WizardSaft(models.Model):
                 else:
                     # este gl ven do If anterior ao For
                     glacc = et.SubElement(gl, 'Account')
-                    glacc.tail = '\n'
                     elemento = glacc
                 et.SubElement(elemento, 'AccountID').text = code
                 et.SubElement(elemento, 'AccountDescription').text = (acc_dict[code]['name'])[:60]
@@ -408,7 +404,7 @@ class WizardSaft(models.Model):
         # 2.5 TaxTable
         taxes = self._get_taxes()
         for tax in taxes:
-            tax.tail = '\n'
+            pass
         master.append(taxes)
         return master
 
@@ -580,7 +576,6 @@ class WizardSaft(models.Model):
             if partner.website:
                 et.SubElement(partner_element, 'Website').text = partner.website[:60]
             et.SubElement(partner_element, 'SelfBillingIndicator').text = self_bill
-            partner_element.tail = '\n'
 
         return True
 
@@ -593,27 +588,26 @@ class WizardSaft(models.Model):
         list_faturas = self.env['account.move'].search([('date', '>=', self.date_inicio),
                                                            ('date', '<=', self.date_fim)])
         for fatura in list_faturas:
-            for linha_fatura in fatura.invoice_line_ids:
-                if not linha_fatura.display_type:
+            for linha_fatura in self.env['account.move.line'].sudo().search([('move_id', '=', fatura.id)]):
+                if linha_fatura.product_id:
                     list_produtos.append(linha_fatura.product_id)
 
         # get guias
         list_guias = self.env['stock.picking'].search([('date', '>=', self.date_inicio), ('date', '<=', self.date_fim)])
         for guia in list_guias:
-            for linha_move in guia.move_lines:
+            for linha_move in guia.move_ids:
                 list_produtos.append(linha_move.product_id)
 
         list_sales = self.env['sale.order'].search([('date_order', '>=', self.date_inicio),
                                                     ('date_order', '<=', self.date_fim)])
         for sale in list_sales:
             for linha_sale in sale.order_line:
-                if not linha_sale.display_type:
+                if linha_sale.product_id:
                     list_produtos.append(linha_sale.product_id)
 
         for product in set(list_produtos):
             if product:
                 eproduct = et.SubElement(master, "Product")
-                eproduct.tail = '\t    '
                 eproduct_type = et.SubElement(eproduct, "ProductType")
 
                 if product.product_tmpl_id.type == 'product':
@@ -710,11 +704,11 @@ class WizardSaft(models.Model):
 
             # /Line
             for element in line_el.getchildren():
-                element.tail = '\n                '
+                pass
         if journal_type in ('sale', 'purchase') and partner:
             partner_el.text = str(partner)
         for element in trans_el.getchildren():
-            element.tail = '\n'
+            pass
 
         return result
 
@@ -724,7 +718,6 @@ class WizardSaft(models.Model):
         # 3. GeneralLedgerEntries
         xmlns = "urn:OECD:StandardAuditFile-Tax:AO_01_01"
         entries = et.Element('GeneralLedgerEntries', xmlns=xmlns)
-        entries.tail = '\n'
         # 3.1 NumberOfEntries
         number_of_entries = et.SubElement(entries, 'NumberOfEntries')
         num_entries = 0
@@ -816,12 +809,12 @@ class WizardSaft(models.Model):
                                                                  [('credit', '>', 0)], move_id)
 
             for element in ejournal.getchildren():
-                element.tail = '\n        '
+                pass
         number_of_entries.text = str(num_entries)
         total_debit_element.text = str(total_db)
         total_credit_element.text = str(total_cd)
         for element in entries.getchildren():
-            element.tail = '\n    '
+            pass
         return entries
 
 
@@ -1162,7 +1155,7 @@ class WizardSaft(models.Model):
 
                 # 4.2.1 Bernardo Editou 2025.05.27
                 #et.SubElement(movement_of_goods, 'NumberOfMovementLines').text = str(len(stock_picking))
-                total_lines = sum(len(picking.move_lines) for picking in stock_picking)
+                total_lines = sum(len(picking.move_ids) for picking in stock_picking)
                 et.SubElement(movement_of_goods, 'NumberOfMovementLines').text = str(total_lines)
 
                 # 4.2.2 Bernardo Editou 2025.05.27
@@ -1172,7 +1165,7 @@ class WizardSaft(models.Model):
                         #WHERE sm.picking_id in %s""", (tuple(stock_picking.ids),))
                 #et.SubElement(movement_of_goods, 'TotalQuantityIssued').text = str(self.env.cr.fetchone()[0])
 
-                total_qty = sum(stock_picking.mapped('move_lines.product_qty'))
+                total_qty = sum(stock_picking.mapped('move_ids.product_qty'))
                 et.SubElement(movement_of_goods, 'TotalQuantityIssued').text = str(total_qty)
 
             for picking in stock_picking:
@@ -1282,7 +1275,7 @@ class WizardSaft(models.Model):
 
                 # linhas
                 n_linha = 0
-                for linha_move in picking.move_lines:
+                for linha_move in picking.move_ids:
                     n_linha += 1
                     # 4.2.3.20
                     line = et.SubElement(stock_movement, 'Line')
@@ -1317,7 +1310,6 @@ class WizardSaft(models.Model):
                 # 4.2.3.20.3
                 et.SubElement(document_totals, 'GrossTotal').text = '0.00'
 
-                movement_of_goods.tail = '\n'
         return movement_of_goods
 
 
@@ -1393,7 +1385,7 @@ class WizardSaft(models.Model):
         if sale_order:
             esource_documents = et.Element('SourceDocuments')
             for element in esource_documents:
-                element.tail = '\n'
+                pass
             esale_orders = et.SubElement(esource_documents, u'WorkingDocuments')
 
             # totals
@@ -1469,7 +1461,7 @@ class WizardSaft(models.Model):
                                 # 4.1.4.14.13.1. (TaxType)
                                 et.SubElement(etax, u"TaxType").text = str(tax.saft_tax_type)
                                 # 4.1.4.14.13.2. (TaxCountryRegion)
-                                et.SubElement(etax, u"TaxCountryRegion").text = str(tax.country_region)
+                                et.SubElement(etax, u"TaxCountryRegion").text = 'AO'  # Forçar 'AO' str(tax.country_region)
                                 # 4.3.4.14.15.3. (TaxCode)*
                                 et.SubElement(etax, u"TaxCode").text = str(tax.saft_tax_code)
                                 # 4.3.4.14.15.4. (TaxPercentage)**
@@ -1513,7 +1505,7 @@ class WizardSaft(models.Model):
                         # 4.3.4.15.4.3. (ExchangeRate)*
                         ecurrency_debit_amount = et.SubElement(ecurrency, u"ExchangeRate")
                         ecurrency_code.text = sale.currency_id.name
-                        ecurrency_credit_amount.text = "{:.2f}".format(sale.grosstotal())
+                        ecurrency_credit_amount.text = "{:.2f}".format(float(sale.grosstotal()))
                         ecurrency_debit_amount.text = str(round(cambio, 4))
             enumber_of_entries_sale.text = str(count_sale)
             #  Totals
@@ -1565,7 +1557,7 @@ class WizardSaft(models.Model):
         esource_documents = et.Element('SourceDocuments')
         if invoices:
             for element in esource_documents:
-                element.tail = '\n'
+                pass
             esales_invoices = et.SubElement(esource_documents, "SalesInvoices")
 
             # totals
@@ -1617,8 +1609,8 @@ class WizardSaft(models.Model):
                                 cambio = 1
                         # 4.1.4.14  Line
                         line_no = 1
-                        for invoice_line in invoice.invoice_line_ids:
-                            if not invoice_line.display_type:
+                        for invoice_line in self.env['account.move.line'].sudo().search([('move_id', '=', invoice.id)]):
+                            if invoice_line.product_id:
                                 eline = et.SubElement(einvoice, u"Line")
                                 # 4.1.4.14.1  LineNumber
                                 et.SubElement(eline, u"LineNumber").text = str(line_no)
@@ -1701,7 +1693,7 @@ class WizardSaft(models.Model):
                                 # Impostos
                                 cont = 0
                                 for imposto in invoice_line.tax_ids:
-                                    if not invoice_line.display_type:
+                                    if invoice_line.product_id:
                                         cont += 1
                                         if cont == 1:
                                             # 4.1.4.14.13 Tax   see invoice_line_tax (optional)

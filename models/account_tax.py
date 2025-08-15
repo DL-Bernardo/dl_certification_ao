@@ -9,7 +9,7 @@ class AccountTax(models.Model):
     _inherit = "account.tax"
 
     # Colocar o campo obrigatório
-    description = fields.Char(string='Label on Invoices', required=True)
+    description = fields.Char(string='Label on Invoices')
     # Campos necessário para o saft
     autoliquidacao = fields.Boolean(string="Auto-Liquidação")
     country_region = fields.Selection([('PT', 'Continente'), ('PT-AC', 'Açores'), ('PT-MA', 'Madeira')],
@@ -116,7 +116,12 @@ class AccountTax(models.Model):
         vals['include_base_amount'] = False
         resultado = super(AccountTax, self).create(vals)
         resultado._validar_imposto(vals)
-        resultado.configure_account_tax_group_and_saft_code()
+
+        # If we are in install_mode, it's likely another module (like l10n_pt)
+        # creating its own taxes and tax groups. We should not interfere.
+        if not self.env.context.get('install_mode'):
+            resultado.configure_account_tax_group_and_saft_code()
+
         return resultado
 
     # validacoes ao apagar impostos

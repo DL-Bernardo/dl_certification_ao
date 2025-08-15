@@ -31,8 +31,5 @@ access_account_stock_quants_manager,access_account_stock_quants_manager,stock.mo
 access_tipo_produto_saft,tipo.produto.saft,model_tipo_produto_saft,,1,0,0,0
 account.access_account_tax_group_manager,account.tax.group,account.model_account_tax_group,account.group_account_manager,1,0,0,0
 account.access_account_tax_group_system,account.tax.group.admin,account.model_account_tax_group,base.group_system,1,1,1,1
-ir_sequence_at_cude,ir_sequence_at_cude group_user,model_ir_sequence_atcud,base.group_user,1,1,1,1
 ir_wizard_cancelar_sale,ir_wizard_cancelar_sale,model_wizard_cancelar_sale,,1,1,1,1
 acess_alert_atcud,acess_alert_atcud,model_alert_atcud,,1,1,1,1
-access_set_journal_sequences_wizard,set.journal.sequences.wizard,model_set_journal_sequences_wizard,base.group_user,1,1,1,1
-access_account_move_sequence_user,account.move.sequence,model_account_move_sequence,account.group_account_user,1,1,1,0

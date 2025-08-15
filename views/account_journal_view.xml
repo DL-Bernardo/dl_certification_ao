@@ -8,7 +8,7 @@
 
             <!-- Inserir uma nova página com campos e botão -->
             <xpath expr="//page[last()]" position="after">
-                <page string="Sequências / SAFT">
+                <page string="SAFT ANGOLA">
                     <group>
                         <group string="Configuração SAFT">
                             <field name="por_defeito"/>
@@ -21,13 +21,13 @@
                             <field name="self_billing"/>
                         </group>
 
-                        <group string="Ação">
+                        <!--<group string="Ação">
                             <button name="action_open_sequence_wizard"
                                     type="object"
                                     string="Configurar Sequência"
                                     class="btn-primary"
                                     icon="fa-cogs"/>
-                        </group>
+                        </group> -->
                     </group>
                 </page>
             </xpath>

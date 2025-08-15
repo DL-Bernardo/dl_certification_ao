@@ -2,7 +2,6 @@
 import os
 import sys
 import subprocess
-from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 from odoo import _
 from odoo.exceptions import UserError
@@ -18,17 +17,38 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     Path(hash_dir).mkdir(parents=True, exist_ok=True)
 
     # Validação básica
-    if not all([datadocumento, datasistema, number, totalbruto]):
+    if not all([datadocumento, datasistema, number, totalbruto is not None]):
         raise UserError(_("Dados incompletos para geração do hash."))
+
+    # Logger seguro
+    _logger = getattr(self, '_logger', None)
+
+    # 🔍 LOG para confirmar o número da fatura e hash anterior
+    if _logger:
+        _logger.info(f"[DEBUG HASH] InvoiceNo usado: {number}")
+        _logger.info(f"[DEBUG HASH] Hash anterior recebido: {antigoHash}")
+    else:
+        print(f"[DEBUG HASH] InvoiceNo usado: {number}")
+        print(f"[DEBUG HASH] Hash anterior recebido: {antigoHash}")
 
     # Formatando valores
     datasistema_fmt = str(datasistema).replace(" ", "T")
     totalbruto_fmt = "{:.2f}".format(float(totalbruto)).replace(",", ".")
     entrada_txt = f"{datadocumento};{datasistema_fmt};{number};{totalbruto_fmt};"
+
     if numHash > 0:
         if not antigoHash:
             raise ValueError("Erro ao gerar hash: Hash anterior em falta para documento sequencial.")
         entrada_txt += antigoHash
+    else:
+        entrada_txt += "0"
+
+    # 🔍 LOG para debug — salva no chatter e imprime no log do servidor
+    self.message_post(body=f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
+    if _logger:
+        _logger.info(f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
+    else:
+        print(f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
 
     # Gravar conteúdo no ficheiro txt
     txt_path = os.path.join(hash_dir, f"{identi}.txt")
@@ -56,6 +76,6 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
         values['hash_control'] = "1"
 
     # Log opcional no chatter
-    self.message_post(body=f"Hash SAFT gerado: {novohash}")
+    self.message_post(body=f"[DEBUG HASH] Hash gerado: {novohash}")
 
     return values

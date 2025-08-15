@@ -49,7 +49,7 @@ class AccountMove(models.Model):
         integer, decimal = str(self.amount_total).split('.')
         return '.'.join([integer, decimal.ljust(2, '0')])
 
-    @api.model
+    @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             if 'currency_id' in vals and vals['currency_id'] and \
@@ -64,6 +64,7 @@ class AccountMove(models.Model):
                     ('name', '<=', data_final)], order='name desc', limit=1)
                 vals['cambio'] = rate.rate or '1'
         return super(AccountMove, self).create(vals_list)
+
 
     def copy(self, default=None):
         ctx = self.env.context.copy()
@@ -165,47 +166,6 @@ class AccountMove(models.Model):
                             _('A data do documento nao pode ser inferior a data de documentos validados anteriormente.'))
         return True
 
-    # Definir a sequência como "Sem Espaços"
-    def validar_sequencia_moeda(self):
-        for invoice in self:
-            if invoice.journal_id.sequence_id.implementation != 'no_gap':
-                raise UserError(_('Erro!\n Deve definir a sequência como "Sem Espaços".'))
-            # verificar se a moeda e igual a da empresa e se nao for, get cambio actual para a fatura.
-            if invoice.company_id.currency_id and invoice.company_id.currency_id != invoice.currency_id:
-                # se a data da fatura tiver preenchida tenho de olhar para essa data, se nao tiver preenchida uso o datetime.now com o timezone
-                date_fatura = datetime.now(tz_pt)
-                if invoice.invoice_date:
-                    date_fatura = invoice.invoice_date
-                # verificar se o cambio é 1
-                currency_rate = self.env['res.currency.rate'].search([
-                    ('currency_id', '=', invoice.currency_id.id),
-                    ('name', '>=', str(date_fatura)[:10] + ' 00:00:00'),
-                    ('name', '<=', str(date_fatura)[:10] + ' 23:59:59')], order='name DESC', limit=1)
-                if currency_rate:
-                    if currency_rate.rate != invoice.cambio and invoice.move_type not in ('out_refund','in_refund'):
-                        raise ValidationError('Deve definir uma taxa de câmbio para a data e moeda definidas na fatura!')
-                else:
-                    raise ValidationError('Deve definir uma taxa de câmbio para a data e moeda definidas na fatura!')
-
-        # na NC a fatura n pode estar cancelada
-        if invoice.move_type == 'out_refund' and invoice.invoice_origin:
-            int_numb = _(invoice.invoice_origin)
-            diario_pre = False
-            if int_numb.find(" ") != -1:
-                int_numb = int_numb.split(" ")
-                diario_pre = int_numb[0]
-                int_numb = int_numb[1]
-
-            fatura_da_nota_crediro = self.search([('internal_number', '=', int_numb)])
-            if fatura_da_nota_crediro.state == 'cancel':
-                if diario_pre:
-                    if fatura_da_nota_crediro.journal_id.saft_inv_type == diario_pre:
-                        raise ValidationError(_('Incorreto !\n A Fatura que está no doc. de origem da Nota de Crédito '
-                                                'já foi cancelada.'))
-                else:
-                    raise ValidationError(_('Incorreto !\n'
-                                             'A Fatura que está no doc. de origem da Nota de Crédito já foi cancelada.'))
-
     # validacoes nas linhas da fatura
     def verificar_linhas_fatura(self, type_tax_use):
         for invoice in self:
@@ -284,44 +244,74 @@ class AccountMove(models.Model):
                 raise ValidationError(_('Impossibilidade\n Nao pode validar faturas com um total negativo!'))
             if invoice.name.count("/") != 1 and invoice.move_type in ('out_invoice', 'out_refund'):
                 raise ValidationError('Config\n O numero tem de ter apenas uma barra.')
-            if not invoice.journal_id.refund_sequence and invoice.move_type in ('out_refund', 'in_refund'):
-                raise ValidationError('Config\n Deve definir o visto no campo Sequencia de Reembolso Dedicada no '
-                                     'diario selecionado antes de validar Notas de Credito!')
 
     def validar_hash(self):
-        for invoice in self:
-            # verificar se é a primeira factura ou nota de credito
-            domain_invoice = [
-                ('hash', '!=', False),
-                ('journal_id', '=', invoice.journal_id.id),
-                ('id', '!=', invoice.id),
-                ('id', '<', invoice.id),
-                ('move_type', '=', invoice.move_type),
-            ]
-            numHash = self.search_count(domain_invoice)
-            antigoHash = False
-            if numHash > 0:
-                antigoHash = self.search(domain_invoice, order='id desc', limit=1).hash
-            return numHash, antigoHash
+        """
+        Calculates the number of preceding invoices and gets the hash of the immediately previous one.
+        This is crucial for maintaining the SAFT hash chain.
+        """
+        self.ensure_one()
+
+        # Domain for all preceding, certified invoices in the same journal/sequence.
+        # We use 'name' for ordering as it represents the sequence number (e.g., 'FA/2025/0001').
+        domain = [
+            ('state', '=', 'posted'),
+            ('journal_id', '=', self.journal_id.id),
+            ('move_type', '=', self.move_type),
+            ('name', '<', self.name),
+            ('hash', '!=', False), # Only consider already certified documents
+        ]
+
+        # The number of preceding invoices is used as 'numHash' in the hash generation.
+        numHash = self.search_count(domain)
+
+        # Find the single immediately preceding invoice to get its hash for the chain.
+        # Ordering by 'name' descending and taking the first result is the most reliable way.
+        previous_invoice = self.search(domain, order='name desc', limit=1)
+        antigoHash = previous_invoice.hash if previous_invoice else '0'
+
+        return numHash, antigoHash
+
 
     def create_hash(self):
         for invoice in self:
-            # Vai buscar a data da criação(datetime.now) todo datetime %Y-%m-%d %H-%M-%S
-            self.env.cr.execute('SELECT write_date FROM account_move WHERE id=%s', (invoice.id,))
-            datasistema = str(self.env.cr.fetchone()[0])[:19]
-            datasistema = str(datetime.now())[:19]
+            # Data de sistema (hora real de geração do hash)
+            datasistema = fields.Datetime.now()
+            invoice.hash_date = datasistema
             datadocumento = invoice.invoice_date
+
             nome_emp = invoice.company_id.create_date
             for key in [" ", ".", ":", "-"]:
                 nome_emp = str(nome_emp).replace(key, "")
 
             identi = nome_emp + str(self.env.user.id) + str(invoice.id)
             numHash, antigoHash = invoice.validar_hash()
-            totalbruto = str(round(invoice.amount_total, 2))
-            number = invoice.journal_id.saft_inv_type + ' ' + invoice.name
-            values = hash_generation.hash(invoice, invoice.journal_id.integrado, invoice.journal_id.manual,
-                                          datadocumento,
-                                          datasistema, number, identi, numHash, antigoHash, totalbruto)
+
+            totalbruto = invoice.amount_total
+            if invoice.move_type == 'out_invoice':
+                tipo = 'FT'
+            elif invoice.move_type == 'out_refund':
+                tipo = 'NC'
+            else:
+                tipo = invoice.journal_id.saft_inv_type or 'OU'  # fallback para diários personalizados
+
+            number = f"{tipo} {invoice.name}"
+
+            # Certificar que hash_control está definido antes de gerar
+            invoice.hash_control = invoice.hash_control or "1"
+
+            values = hash_generation.hash(
+                invoice,
+                invoice.journal_id.integrado,
+                invoice.journal_id.manual,
+                datadocumento,
+                datasistema,
+                number,
+                identi,
+                numHash,
+                antigoHash,
+                totalbruto
+            )
             invoice.write(values)
 
     def treat_atcud(self):
@@ -337,7 +327,7 @@ class AccountMove(models.Model):
                                                                                             invoice.invoice_date)
                     if not codigo_validacao_serie:
                         if self.env.user.has_group('account.group_account_manager'):
-                            action = self.env.ref('opc_certification_ao_v17.action_ir_sequence_atcud')
+                            action = self.env.ref('opc_certification_ao.action_ir_sequence_atcud')
                             wizard_alert_atcud.treat_sequences()
                             msg = _(
                                 'Falta definir o codigo de validação de sequência AT. '
@@ -351,13 +341,20 @@ class AccountMove(models.Model):
 
     def auto_payment(self):
         for invoice in self:
+            _logger.info("Verificando pagamento automático para a fatura: %s", invoice.name)
+            _logger.info("Journal SAFT type: %s", invoice.journal_id.saft_inv_type)
+            _logger.info("Journal paga_me: %s", invoice.journal_id.paga_me)
+            _logger.info("Invoice amount_total: %s", invoice.amount_total)
+
             # Pagamentos automaticos
             if invoice.journal_id.saft_inv_type in ['VD', 'FS', 'FR'] and \
-                    self.journal_id.paga_me and self.amount_total > 0:
+                    invoice.journal_id.paga_me and invoice.amount_total > 0:
+                _logger.info("Condições para pagamento automático cumpridas. A processar...")
                 move_pool = self.env['account.move']
                 seq_obj = self.env['ir.sequence']
 
                 if not invoice.modo_pagar_vd or not invoice.modo_pagar_vd.id:
+                    _logger.warning("Modo de pagamento não definido para a fatura %s.", invoice.name)
                     raise ValidationError('Aviso\n Deve preencher o campo "Modo pagamento" '
                                           'de VDs na aba "Outra Informação".')
                 else:
@@ -448,7 +445,6 @@ class AccountMove(models.Model):
         for invoice in self:
             invoice.treat_atcud()
             invoice.verificar_cliente_data()
-            invoice.validar_sequencia_moeda()
             invoice.verificar_linhas_fatura(TYPE2JOURNAL[invoice.move_type])
             invoice.verificar_diarios()
             invoice.verificar_dados_fatura()
@@ -462,6 +458,7 @@ class AccountMove(models.Model):
             invoice.internal_number = invoice.name
 
     def action_post(self):
+        super(AccountMove, self).action_post()
         for invoice in self:
             # Pesquisar se nao existe uma fatura para esse movimento
             if invoice.journal_id.type == 'sale' and (not invoice.journal_id.manual or \
@@ -469,7 +466,13 @@ class AccountMove(models.Model):
                     raise UserError(_('Não pode publicar movimentos de vendas que nao estejam associados a faturas'))
             if invoice.move_type in ('out_invoice', 'in_invoice', 'out_refund', 'in_refund'):
                 invoice.certify()
-        return super(AccountMove, self).action_post()
+
+    def _post(self, soft=True):
+        post = super(AccountMove, self)._post(soft)
+        for invoice in self:
+            if invoice.move_type in ('out_invoice', 'in_invoice', 'out_refund', 'in_refund') and not invoice.hash:
+                invoice.certify()
+        return post
 
     # razao de cancelamento obrigatoria ao cancelar fatura ou nc de venda
     def action_cancel(self):
@@ -481,36 +484,24 @@ class AccountMove(models.Model):
 
     # diarios por defeito na fatura
     @api.model
-    def _search_default_journal(self, journal_types=None, *args, **kwargs):
-        move_type = self._context.get('default_move_type', 'entry')
-        journal_types = journal_types or [TYPE2JOURNAL.get(move_type, 'general')]
+    def _get_caixa_defeito(self):
+        account_journal = self.env['account.journal'].search([
+            ('type', 'in', ['cash', 'bank']),
+            ('saft_inv_type', '=', 'FR'),
+            ('por_defeito', '=', True),
+            ('company_id', '=', self.env.user.company_id.id)], limit=1)
+        if account_journal:
+            return account_journal.id
+        else:
+            return False
 
-        company_id = self._context.get('default_company_id', self.env.company.id)
-        domain = [('company_id', '=', company_id), ('type', 'in', journal_types)]
-
-        journal = None
-        if self._context.get('default_currency_id'):
-            currency_domain = domain + [('currency_id', '=', self._context['default_currency_id'])]
-            por_defeito_domain = domain + [('por_defeito', '=', True)]
-            journal = self.env['account.journal'].search(por_defeito_domain, limit=1)
-
-            if not journal:
-                journal = self.env['account.journal'].search(currency_domain, limit=1)
-
-        if not journal:
-            journal = self.env['account.journal'].search(domain, limit=1)
-
-        if not journal:
-            return super(AccountMove, self)._search_default_journal(journal_types)
-
-        return journal
 
     # metodo para selecionar diario automatico em faturas recibo
     @api.model
     def _get_caixa_defeito(self):
         account_journal = self.env['account.journal'].search([
             ('type', 'in', ['cash', 'bank']),
-            ('saft_inv_type', '=', 'receipt'),
+            ('saft_inv_type', '=', 'FR'),
             ('por_defeito', '=', True),
             ('company_id', '=', self.env.user.company_id.id)], limit=1)
         if account_journal:
@@ -642,6 +633,7 @@ class AccountMove(models.Model):
                                                                 round(retencao_na_fonte, 2), quatro_caratecters_hash,
                                                                 n_certificado, outras_infos)
 
+
     def _compute_qr_code_image(self):
         for invoice in self:
             invoice.qr_code_at_img = self.env['alert.atcud']._compute_qr_code_image(invoice.qr_code_at)
@@ -662,7 +654,8 @@ class AccountMove(models.Model):
     system_entry_date = fields.Datetime(string="Data de confirmação", copy=False)
     write_date = fields.Datetime(string="Data de alteração", copy=False)
     modo_pagar_vd = fields.Many2one('account.journal', string="Modo Pagamento", readonly=True,
-                                    states={'draft': [('readonly', False)]}, default=_get_caixa_defeito, copy=False)
+                                    states={'draft': [('readonly', False)]}, default=_get_caixa_defeito, copy=False,
+                                    domain="[('type', 'in', ('bank', 'cash'))]")
     ref_saft_inv_type = fields.Selection(related='modo_pagar_vd.saft_inv_type', string="Tipo de Documento")
     atcud = fields.Char(compute='_compute_atcud', string='ATCUD')
     qr_code_at = fields.Char(compute='_get_qr_code_generation', string='QR Code AT')
@@ -673,17 +666,12 @@ class AccountMove(models.Model):
 
     @api.depends('posted_before', 'state', 'journal_id', 'date')
     def _compute_name(self):
-        for move in self:
-            if move.move_type in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund') and not move.name:
-                if not move.journal_id.sequence_id:
-                    raise UserError(_('Por favor defina uma sequência no diário'))
-                if not move.sequence_generated and move.state == 'draft':
-                    move.name = '/'
-                elif not move.sequence_generated and move.state != 'draft':
-                    move.name = move.journal_id.sequence_id.next_by_id()
-                    move.sequence_generated = True
-            else:
-                super(AccountMove, self)._compute_name()
+        # The custom logic for sequence generation in this method was causing
+        # conflicts with the standard Odoo 17 flow, leading to AttributeErrors.
+        # By delegating completely to the parent method, we let Odoo handle
+        # the name and sequence generation at the correct time (during post).
+        return super()._compute_name()
+
 
     # verificar se o cambio é maior que o 0
     @api.constrains('cambio')

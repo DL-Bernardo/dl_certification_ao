@@ -24,6 +24,7 @@ class AccountJournal(models.Model):
                                         default="N",
                                         copy=False)
     saft_inv_type = fields.Selection([('FT', 'Factura'),
+                                      ('NC', 'Nota de Crédito'),
                                       ('FR', 'Factura Recibo'),
                                       ('ND', 'Nota de débito'),
                                       ('VD', 'Venda a Dinheiro'),

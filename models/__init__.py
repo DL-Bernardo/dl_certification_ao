@@ -13,7 +13,4 @@ from . import stock
 from . import account_move
 from . import account_move_line
 from . import pedidos_at
-from . import ir_sequence
 from . import hist_saft
-from . import ir_sequence_atcud
-from . import account_move_sequence
