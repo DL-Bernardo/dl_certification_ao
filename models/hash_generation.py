@@ -45,20 +45,25 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     datasistema_fmt = str(datasistema).replace(" ", "T")
     totalbruto_fmt = "{:.2f}".format(float(totalbruto)).replace(",", ".")
     entrada_txt = f"{datadocumento};{datasistema_fmt};{number};{totalbruto_fmt};"
-    if numHash > 0:
-        entrada_txt += antigoHash
-    else:
-        entrada_txt += "0"
 
-    # 🔍 Log extra para confirmar InvoiceNo usado
+    # 🔒 Bloqueio extra para nunca deixar "0" no primeiro registo
+    if numHash > 0 and antigoHash and antigoHash != "0":
+        entrada_txt += antigoHash
+
+    # 🔍 Log extra para confirmar valores recebidos
+    if _logger:
+        _logger.info(f"[DEBUG HASH] numHash={numHash}, antigoHash={antigoHash!r}")
+    self.message_post(body=f"[DEBUG HASH] numHash={numHash}, antigoHash={antigoHash!r}")
+
+    # 🔍 Log InvoiceNo usado
     if _logger:
         _logger.info(f"[DEBUG HASH] InvoiceNo usado: {number}")
     self.message_post(body=f"[DEBUG HASH] InvoiceNo usado: {number}")
 
-    # Log da string a assinar
-    self.message_post(body=f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
+    # 🔍 Log da string a assinar
     if _logger:
         _logger.info(f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
+    self.message_post(body=f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
 
     # Gravar conteúdo no ficheiro txt
     txt_path = os.path.join(hash_dir, f"{identi}.txt")
@@ -85,7 +90,7 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     else:
         values['hash_control'] = "1"
 
-    # Log opcional no chatter
+    # Log final com o hash gerado
     self.message_post(body=f"[DEBUG HASH] Hash gerado: {novohash}")
 
     return values
