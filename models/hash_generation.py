@@ -6,31 +6,42 @@ from pathlib import Path
 from odoo import _
 from odoo.exceptions import UserError
 
-
 def hash(self, integrado, manual, datadocumento, datasistema, number, identi, numHash, antigoHash, totalbruto):
     _logger = getattr(self, '_logger', None)
 
-    # Ambiente Windows ou integrado → ignora hash
+    # Windows ou integrado → ignora hash
     if sys.platform == "win32" or integrado:
         return {'hash': '', 'hash_date': datasistema, 'hash_control': '0'}
 
-    # 🔍 Buscar sempre o hash da última fatura válida no mesmo diário
-    if numHash > 0:
-        last_invoice = self.env['account.move'].search([
+    # --- SEMPRE descobrir o hash anterior no mesmo diário/mov. ---
+    prev_hash = ""
+    prev_move = self.env['account.move'].search([
+        ('journal_id', '=', self.journal_id.id),
+        ('company_id', '=', self.company_id.id),
+        ('state', '=', 'posted'),
+        ('move_type', '=', self.move_type),
+        ('id', '!=', self.id),
+        ('hash', '!=', False),
+        ('hash', '!=', ''),
+        ('hash_date', '<', datasistema),  # encadear por data de sistema
+    ], order='hash_date desc, id desc', limit=1)
+
+    # fallback caso hash_date ainda não exista em dados antigos
+    if not prev_move:
+        prev_move = self.env['account.move'].search([
             ('journal_id', '=', self.journal_id.id),
+            ('company_id', '=', self.company_id.id),
             ('state', '=', 'posted'),
-            ('id', '<', self.id),
             ('move_type', '=', self.move_type),
-            ('hash', '!=', False)
+            ('id', '<', self.id),
+            ('hash', '!=', False),
+            ('hash', '!=', ''),
         ], order='id desc', limit=1)
 
-        if last_invoice:
-            antigoHash = last_invoice.hash
-            if _logger:
-                _logger.info(f"[DEBUG HASH] Último hash encontrado para encadeamento: {antigoHash}")
-            self.message_post(body=f"[DEBUG HASH] Último hash encontrado: {antigoHash}")
-        else:
-            raise UserError(_("Não foi possível encontrar o hash anterior para o encadeamento."))
+    if prev_move:
+        prev_hash = prev_move.hash or ""
+        # remover espaços/quebras de linha/eventuais tabs
+        prev_hash = "".join(prev_hash.split())
 
     # Caminhos
     hash_dir = "/opt/hashDir/"
@@ -41,36 +52,35 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     if not all([datadocumento, datasistema, number, totalbruto is not None]):
         raise UserError(_("Dados incompletos para geração do hash."))
 
-    # Formatando valores
+    # Formatação dos campos
     datasistema_fmt = str(datasistema).replace(" ", "T")
     totalbruto_fmt = "{:.2f}".format(float(totalbruto)).replace(",", ".")
+
+    # Mensagem base (1º registo termina em ';')
     entrada_txt = f"{datadocumento};{datasistema_fmt};{number};{totalbruto_fmt};"
+    # Registos seguintes: acrescentar o hash anterior (sem ';' no fim)
+    if prev_hash:
+        entrada_txt += prev_hash
 
-    # 🔒 Bloqueio extra para nunca deixar "0" no primeiro registo
-    if numHash > 0 and antigoHash and antigoHash != "0":
-        entrada_txt += antigoHash
-
-    # 🔍 Log extra para confirmar valores recebidos
+    # Logs de diagnóstico
+    prev_len = len(prev_hash) if prev_hash else 0
+    prev_tail = prev_hash[-8:] if prev_hash else ""
     if _logger:
-        _logger.info(f"[DEBUG HASH] numHash={numHash}, antigoHash={antigoHash!r}")
-    self.message_post(body=f"[DEBUG HASH] numHash={numHash}, antigoHash={antigoHash!r}")
-
-    # 🔍 Log InvoiceNo usado
-    if _logger:
+        _logger.info(f"[DEBUG HASH] numHash={numHash}, antigoHash(param)={repr(antigoHash)}")
+        _logger.info(f"[DEBUG HASH] prev_move_id={prev_move.id if prev_move else None}, prev_hash_len={prev_len}, prev_hash_tail={prev_tail}")
         _logger.info(f"[DEBUG HASH] InvoiceNo usado: {number}")
-    self.message_post(body=f"[DEBUG HASH] InvoiceNo usado: {number}")
-
-    # 🔍 Log da string a assinar
-    if _logger:
         _logger.info(f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
+    self.message_post(body=f"[DEBUG HASH] numHash={numHash}, antigoHash(param)={repr(antigoHash)}")
+    self.message_post(body=f"[DEBUG HASH] prev_move_id={prev_move.id if prev_move else None}, prev_hash_len={prev_len}, prev_hash_tail={prev_tail}")
+    self.message_post(body=f"[DEBUG HASH] InvoiceNo usado: {number}")
     self.message_post(body=f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
 
-    # Gravar conteúdo no ficheiro txt
+    # Escrever ficheiro a assinar (sem newline no fim)
     txt_path = os.path.join(hash_dir, f"{identi}.txt")
-    with open(txt_path, "w") as f:
+    with open(txt_path, "w", newline="") as f:
         f.write(entrada_txt)
 
-    # Assinatura RSA
+    # Assinar (RSA/SHA1, PKCS#1 v1.5) e converter para Base64 numa só linha
     sha1_path = os.path.join(hash_dir, f"{identi}.sha1")
     b64_path = os.path.join(hash_dir, f"{identi}.b64")
     try:
@@ -79,18 +89,14 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     except subprocess.CalledProcessError as e:
         raise UserError(_("Erro ao gerar assinatura digital: %s") % e)
 
-    # Ler resultado final
     with open(b64_path, "r") as f:
-        novohash = f.read().strip()
+        novohash = "".join((f.read() or "").split())  # garantir sem quebras/esp.
 
-    # Construir valores
     values = {'hash': novohash, 'hash_date': datasistema}
-    if manual:
-        values['hash_control'] = f"1-{self.journal_id.saft_inv_type}M {self.origin or ''}"
-    else:
-        values['hash_control'] = "1"
+    values['hash_control'] = f"1-{self.journal_id.saft_inv_type}M {self.origin or ''}" if manual else "1"
 
-    # Log final com o hash gerado
     self.message_post(body=f"[DEBUG HASH] Hash gerado: {novohash}")
+    if _logger:
+        _logger.info(f"[DEBUG HASH] Hash gerado: {novohash}")
 
     return values

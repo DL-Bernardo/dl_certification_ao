@@ -268,7 +268,8 @@ class AccountMove(models.Model):
         # Find the single immediately preceding invoice to get its hash for the chain.
         # Ordering by 'name' descending and taking the first result is the most reliable way.
         previous_invoice = self.search(domain, order='name desc', limit=1)
-        antigoHash = previous_invoice.hash if previous_invoice else '0'
+        # Alteração: nunca devolver "0", mas sim string vazia no primeiro documento
+        antigoHash = previous_invoice.hash if previous_invoice else ""
 
         return numHash, antigoHash
 
@@ -495,6 +496,23 @@ class AccountMove(models.Model):
         else:
             return False
 
+
+    @api.model
+    def _search_default_journal(self):
+        # This method is a fallback for the 'FT' journal, which is pre-existing
+        # and whose XML ID we cannot reliably know. For other journals ('FR', 'NC'),
+        # we set the default_journal_id directly in the action context.
+        if self.env.context.get('default_journal_saft_inv_type') == 'FT':
+            journal = self.env['account.journal'].search([
+                ('type', '=', 'sale'),
+                ('company_id', '=', self.env.company.id),
+                ('saft_inv_type', '=', 'FT')
+            ], limit=1)
+            if journal:
+                return journal
+
+        # For all other cases, or if the FT journal is not found, use standard Odoo logic.
+        return super()._search_default_journal()
 
     # metodo para selecionar diario automatico em faturas recibo
     @api.model
