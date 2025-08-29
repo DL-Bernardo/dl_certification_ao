@@ -268,8 +268,7 @@ class AccountMove(models.Model):
         # Find the single immediately preceding invoice to get its hash for the chain.
         # Ordering by 'name' descending and taking the first result is the most reliable way.
         previous_invoice = self.search(domain, order='name desc', limit=1)
-        # Alteração: nunca devolver "0", mas sim string vazia no primeiro documento
-        antigoHash = previous_invoice.hash if previous_invoice else ""
+        antigoHash = previous_invoice.hash if previous_invoice else '0'
 
         return numHash, antigoHash
 
@@ -484,19 +483,6 @@ class AccountMove(models.Model):
         return super(AccountMove, self).action_cancel()
 
     # diarios por defeito na fatura
-    @api.model
-    def _get_caixa_defeito(self):
-        account_journal = self.env['account.journal'].search([
-            ('type', 'in', ['cash', 'bank']),
-            ('saft_inv_type', '=', 'FR'),
-            ('por_defeito', '=', True),
-            ('company_id', '=', self.env.user.company_id.id)], limit=1)
-        if account_journal:
-            return account_journal.id
-        else:
-            return False
-
-
     @api.model
     def _search_default_journal(self):
         # This method is a fallback for the 'FT' journal, which is pre-existing

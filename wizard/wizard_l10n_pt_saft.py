@@ -1461,7 +1461,7 @@ class WizardSaft(models.Model):
                                 # 4.1.4.14.13.1. (TaxType)
                                 et.SubElement(etax, u"TaxType").text = str(tax.saft_tax_type)
                                 # 4.1.4.14.13.2. (TaxCountryRegion)
-                                et.SubElement(etax, u"TaxCountryRegion").text = 'AO'  # Forçar 'AO' str(tax.country_region)
+                                et.SubElement(etax, u"TaxCountryRegion").text = str(tax.country_region)
                                 # 4.3.4.14.15.3. (TaxCode)*
                                 et.SubElement(etax, u"TaxCode").text = str(tax.saft_tax_code)
                                 # 4.3.4.14.15.4. (TaxPercentage)**
