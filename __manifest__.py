@@ -54,6 +54,7 @@
         'views/menus.xml',
         'wizard/cancelar_sale_order_view.xml',
     ],
+    'post_init_hook': '_create_journals',
     'models': [
         'models/account_account.py',
         'models/account_config_settings.py',

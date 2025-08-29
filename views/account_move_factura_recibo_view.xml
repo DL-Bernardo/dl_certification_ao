@@ -2,13 +2,13 @@
 <odoo>
     <data>
 
-        <!-- Ação para Facturas Normais (exclui FR) -->
+        <!-- Ação para Facturas Normais -->
         <record id="action_move_out_invoice_normal" model="ir.actions.act_window">
             <field name="name">Facturas</field>
             <field name="res_model">account.move</field>
             <field name="view_mode">tree,form</field>
-            <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '!=', 'FR')]</field>
-            <field name="context">{'default_move_type': 'out_invoice', 'default_journal_saft_inv_type': 'FT'}</field>
+            <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FT')]</field>
+            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_journal_ft')}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>
         </record>
 
@@ -24,7 +24,7 @@
             <field name="res_model">account.move</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FR')]</field>
-            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('journal_fr')}"/>
+            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_journal_fr')}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>
         </record>
 
@@ -41,7 +41,7 @@
 
         <!-- Adicionar contexto à ação de Nota de Crédito para definir o diário padrão -->
         <record id="account.action_move_out_refund_type" model="ir.actions.act_window">
-            <field name="context" eval="{'default_move_type': 'out_refund', 'default_journal_id': ref('journal_nc')}"/>
+            <field name="context" eval="{'default_move_type': 'out_refund', 'default_journal_id': ref('opc_journal_nc')}"/>
         </record>
 
         <!-- Ação para Nota de Débito -->
@@ -50,7 +50,7 @@
             <field name="res_model">account.move</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'ND')]</field>
-            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('nd_journal')}"/>
+            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_journal_nd')}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>
         </record>
 

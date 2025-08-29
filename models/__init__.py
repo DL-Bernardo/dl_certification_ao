@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from . import setup_journals
 from . import account_tax
 from . import account_account
 from . import taxonomia

@@ -131,6 +131,11 @@ class AccountMove(models.Model):
                 invoice.user_id = self.env.uid
         return result
 
+    @api.onchange('invoice_origin_id')
+    def _onchange_invoice_origin_id(self):
+        if self.invoice_origin_id:
+            self.invoice_origin = self.invoice_origin_id.name
+
     # valicoes dados cliente
     def verificar_cliente_data(self):
         for invoice in self:
@@ -200,7 +205,7 @@ class AccountMove(models.Model):
                 raise ValidationError('Incompleto !\n Nao pode usar Vendas a Dinheiro.')
 
             # Origin obrigatorio if NC ou ND
-            if invoice.journal_id.saft_inv_type in ['NC', 'ND'] and not invoice.invoice_origin:
+            if invoice.journal_id.saft_inv_type in ['NC', 'ND'] and not invoice.invoice_origin and not invoice.invoice_origin_id:
                 raise ValidationError('Incompleto !\n Com diario selecionado, o campo Doc. Origem na fatura '
                                       'tem de ser preenchido.')
 
@@ -650,6 +655,8 @@ class AccountMove(models.Model):
     hash_date = fields.Datetime(string="Data em que o hash foi gerado", copy=False)
     cambio = fields.Float(digits=(2, 6), help="Cambio da moeda", invisible=True, default=1)
     product_id = fields.Many2one(string="Produto", related='invoice_line_ids.product_id')
+    invoice_origin_id = fields.Many2one('account.move', string="Documento de Origem",
+                                        domain=[('move_type', '=', 'out_invoice'), ('state', '=', 'posted')])
     internal_number = fields.Char(string="Invoice Number", copy=False)
     currency_tax_info = fields.Text(compute='_get_currency_tax_info', readonly=True, string="Câmbio",
                                     help="Valor e data da taxa de cambio definida para a date e moeda da fatura")
