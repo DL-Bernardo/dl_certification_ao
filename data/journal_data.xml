@@ -1,20 +1,27 @@
 <odoo>
     <data noupdate="1">
 
-        <!-- Create dedicated, self-contained journals for this module to avoid conflicts. -->
-
         <record id="opc_journal_ft" model="account.journal">
-            <field name="name">Faturas de Cliente (OPC)</field>
-            <field name="code">OPCFT</field>
+            <field name="name">Faturas (OPC)</field>
+            <field name="code">FT</field>
             <field name="type">sale</field>
             <field name="saft_inv_type">FT</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="opc_journal_nd" model="account.journal">
+            <field name="name">Nota de Débito (OPC)</field>
+            <field name="code">ND</field>
+            <field name="type">sale</field>
             <field name="refund_sequence" eval="True"/>
+            <field name="saft_inv_type">ND</field>
+            <field name="allow_date" eval="False"/>
             <field name="company_id" ref="base.main_company"/>
         </record>
 
         <record id="opc_journal_fr" model="account.journal">
             <field name="name">Fatura-Recibo (OPC)</field>
-            <field name="code">OPCFR</field>
+            <field name="code">FR</field>
             <field name="type">sale</field>
             <field name="saft_inv_type">FR</field>
             <field name="refund_sequence" eval="True"/>
@@ -23,18 +30,9 @@
 
         <record id="opc_journal_nc" model="account.journal">
             <field name="name">Nota de Crédito (OPC)</field>
-            <field name="code">OPCNC</field>
+            <field name="code">NC</field>
             <field name="type">sale</field>
             <field name="saft_inv_type">NC</field>
-            <field name="refund_sequence" eval="True"/>
-            <field name="company_id" ref="base.main_company"/>
-        </record>
-
-        <record id="opc_journal_nd" model="account.journal">
-            <field name="name">Nota de Débito (OPC)</field>
-            <field name="code">OPCND</field>
-            <field name="type">sale</field>
-            <field name="saft_inv_type">ND</field>
             <field name="refund_sequence" eval="True"/>
             <field name="company_id" ref="base.main_company"/>
         </record>

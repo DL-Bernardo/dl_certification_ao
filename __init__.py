@@ -2,4 +2,4 @@
 from . import models
 from . import wizard
 
-from .models.setup_journals import _create_journals
+from .models.setup_hooks import _pre_init_hook
