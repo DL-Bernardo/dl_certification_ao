@@ -251,73 +251,77 @@ class AccountMove(models.Model):
                 raise ValidationError('Config\n O numero tem de ter apenas uma barra.')
 
     def validar_hash(self):
-        """
-        Calculates the number of preceding invoices and gets the hash of the immediately previous one.
-        This is crucial for maintaining the SAFT hash chain.
-        """
-        self.ensure_one()
+    """
+    Calcula o número de documentos anteriores e obtém o hash do
+    documento imediatamente anterior, respeitando a série (saft_inv_type).
+    Isto garante que cada tipo de documento (FT, NC, ND, FR, etc.)
+    encadeia apenas dentro da sua própria série.
+    """
+    self.ensure_one()
 
-        # Domain for all preceding, certified invoices in the same journal/sequence.
-        # We use 'name' for ordering as it represents the sequence number (e.g., 'FA/2025/0001').
-        domain = [
-            ('state', '=', 'posted'),
-            ('journal_id', '=', self.journal_id.id),
-            ('move_type', '=', self.move_type),
-            ('name', '<', self.name),
-            ('hash', '!=', False), # Only consider already certified documents
-        ]
+    # Domínio: documentos anteriores, do mesmo diário e mesma série SAFT
+    domain = [
+        ('state', '=', 'posted'),
+        ('journal_id', '=', self.journal_id.id),
+        ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
+        ('name', '<', self.name),
+        ('hash', '!=', False),
+    ]
 
-        # The number of preceding invoices is used as 'numHash' in the hash generation.
-        numHash = self.search_count(domain)
+    # Número de documentos anteriores (numHash)
+    numHash = self.search_count(domain)
 
-        # Find the single immediately preceding invoice to get its hash for the chain.
-        # Ordering by 'name' descending and taking the first result is the most reliable way.
-        previous_invoice = self.search(domain, order='name desc', limit=1)
-        antigoHash = previous_invoice.hash if previous_invoice else '0'
+    # Documento imediatamente anterior para obter o hash
+    previous_invoice = self.search(domain, order='name desc', limit=1)
+    antigoHash = previous_invoice.hash if previous_invoice else '0'
 
-        return numHash, antigoHash
-
+    return numHash, antigoHash
 
     def create_hash(self):
-        for invoice in self:
-            # Data de sistema (hora real de geração do hash)
-            datasistema = fields.Datetime.now()
-            invoice.hash_date = datasistema
-            datadocumento = invoice.invoice_date
+    for invoice in self:
+        # Data de sistema (hora real de geração do hash)
+        datasistema = fields.Datetime.now()
+        invoice.hash_date = datasistema
+        datadocumento = invoice.invoice_date
 
-            nome_emp = invoice.company_id.create_date
-            for key in [" ", ".", ":", "-"]:
-                nome_emp = str(nome_emp).replace(key, "")
+        # Identificador único interno
+        nome_emp = invoice.company_id.create_date
+        for key in [" ", ".", ":", "-"]:
+            nome_emp = str(nome_emp).replace(key, "")
+        identi = nome_emp + str(self.env.user.id) + str(invoice.id)
 
-            identi = nome_emp + str(self.env.user.id) + str(invoice.id)
-            numHash, antigoHash = invoice.validar_hash()
+        # Obter numHash e antigoHash
+        numHash, antigoHash = invoice.validar_hash()
 
-            totalbruto = invoice.amount_total
-            if invoice.move_type == 'out_invoice':
-                tipo = 'FT'
-            elif invoice.move_type == 'out_refund':
-                tipo = 'NC'
-            else:
-                tipo = invoice.journal_id.saft_inv_type or 'OU'  # fallback para diários personalizados
+        totalbruto = invoice.amount_total
 
-            number = f"{tipo} {invoice.name}"
+        # Tipo de documento (usar série SAFT para distinguir FT, FR, ND, etc.)
+        if invoice.move_type == 'out_refund':
+            tipo = 'NC'
+        else:
+            # FT, FR, ND e outros out_invoice → respeitar saft_inv_type do diário
+            tipo = invoice.journal_id.saft_inv_type or 'OU'
 
-            # Certificar que hash_control está definido antes de gerar
-            invoice.hash_control = invoice.hash_control or "1"
+        # Número final do documento (ex.: "FT A2025/1")
+        number = f"{tipo} {invoice.name}"
 
-            values = hash_generation.hash(
-                invoice,
-                invoice.journal_id.integrado,
-                invoice.journal_id.manual,
-                datadocumento,
-                datasistema,
-                number,
-                identi,
-                numHash,
-                antigoHash,
-                totalbruto
-            )
-            invoice.write(values)
+        # Certificar que hash_control está definido antes de gerar
+        invoice.hash_control = invoice.hash_control or "1"
+
+        # Chamada para gerar o hash
+        values = hash_generation.hash(
+            invoice,
+            invoice.journal_id.integrado,
+            invoice.journal_id.manual,
+            datadocumento,
+            datasistema,
+            number,
+            identi,
+            numHash,
+            antigoHash,
+            totalbruto
+        )
+        invoice.write(values)
 
     def treat_atcud(self):
         for invoice in self:

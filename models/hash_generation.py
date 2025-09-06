@@ -13,13 +13,13 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     if sys.platform == "win32" or integrado:
         return {'hash': '', 'hash_date': datasistema, 'hash_control': '0'}
 
-    # --- SEMPRE descobrir o hash anterior no mesmo diário/mov. ---
+    # --- SEMPRE descobrir o hash anterior no mesmo diário/série ---
     prev_hash = ""
     prev_move = self.env['account.move'].search([
         ('journal_id', '=', self.journal_id.id),
         ('company_id', '=', self.company_id.id),
         ('state', '=', 'posted'),
-        ('move_type', '=', self.move_type),
+        ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
         ('id', '!=', self.id),
         ('hash', '!=', False),
         ('hash', '!=', ''),
@@ -32,7 +32,7 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
             ('journal_id', '=', self.journal_id.id),
             ('company_id', '=', self.company_id.id),
             ('state', '=', 'posted'),
-            ('move_type', '=', self.move_type),
+            ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
             ('id', '<', self.id),
             ('hash', '!=', False),
             ('hash', '!=', ''),
