@@ -204,10 +204,10 @@ class AccountMove(models.Model):
             if invoice.journal_id.saft_inv_type == 'VD':
                 raise ValidationError('Incompleto !\n Nao pode usar Vendas a Dinheiro.')
 
-            # Origin obrigatorio if NC
-            if invoice.journal_id.saft_inv_type == 'NC' and not invoice.invoice_origin_id:
-                raise ValidationError('Incompleto !\n Com diario selecionado, o campo Doc. Origem na fatura '
-                                      'tem de ser preenchido.')
+            # Origin obrigatorio if NC ou ND
+            #if invoice.journal_id.saft_inv_type in ['NC', 'ND'] and not invoice.invoice_origin_id:
+            #    raise ValidationError('Incompleto !\n Com diario selecionado, o campo Doc. Origem na fatura '
+            #                          'tem de ser preenchido.')
 
             # verificar se é de pagamento automatico
             if invoice.journal_id.paga_me:
@@ -251,77 +251,78 @@ class AccountMove(models.Model):
                 raise ValidationError('Config\n O numero tem de ter apenas uma barra.')
 
     def validar_hash(self):
-    """
-    Calcula o número de documentos anteriores e obtém o hash do
-    documento imediatamente anterior, respeitando a série (saft_inv_type).
-    Isto garante que cada tipo de documento (FT, NC, ND, FR, etc.)
-    encadeia apenas dentro da sua própria série.
-    """
-    self.ensure_one()
+        """
+        Calcula o número de documentos anteriores e obtém o hash do
+        documento imediatamente anterior, respeitando a série (saft_inv_type).
+        Isto garante que cada tipo de documento (FT, NC, ND, FR, etc.)
+        encadeia apenas dentro da sua própria série.
+        """
+        self.ensure_one()
 
-    # Domínio: documentos anteriores, do mesmo diário e mesma série SAFT
-    domain = [
-        ('state', '=', 'posted'),
-        ('journal_id', '=', self.journal_id.id),
-        ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
-        ('name', '<', self.name),
-        ('hash', '!=', False),
-    ]
+        # Domínio: documentos anteriores, do mesmo diário e mesma série SAFT
+        domain = [
+            ('state', '=', 'posted'),
+            ('journal_id', '=', self.journal_id.id),
+            ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
+            ('id', '<', self.id), # garante que só pega documentos anteriores para series correspondentes
+            ('hash', '!=', False),
+        ]
 
-    # Número de documentos anteriores (numHash)
-    numHash = self.search_count(domain)
+        # Número de documentos anteriores (numHash)
+        numHash = self.search_count(domain)
 
-    # Documento imediatamente anterior para obter o hash
-    previous_invoice = self.search(domain, order='name desc', limit=1)
-    antigoHash = previous_invoice.hash if previous_invoice else '0'
+        # Documento imediatamente anterior para obter o hash
+        previous_invoice = self.search(domain, order='id desc', limit=1)
+        antigoHash = previous_invoice.hash if previous_invoice else '0'
 
-    return numHash, antigoHash
+        return numHash, antigoHash
+
 
     def create_hash(self):
-    for invoice in self:
-        # Data de sistema (hora real de geração do hash)
-        datasistema = fields.Datetime.now()
-        invoice.hash_date = datasistema
-        datadocumento = invoice.invoice_date
+        for invoice in self:
+            # Data de sistema (hora real de geração do hash)
+            datasistema = fields.Datetime.now()
+            invoice.hash_date = datasistema
+            datadocumento = invoice.invoice_date
 
-        # Identificador único interno
-        nome_emp = invoice.company_id.create_date
-        for key in [" ", ".", ":", "-"]:
-            nome_emp = str(nome_emp).replace(key, "")
-        identi = nome_emp + str(self.env.user.id) + str(invoice.id)
+            # Identificador único interno
+            nome_emp = invoice.company_id.create_date
+            for key in [" ", ".", ":", "-"]:
+                nome_emp = str(nome_emp).replace(key, "")
+            identi = nome_emp + str(self.env.user.id) + str(invoice.id)
 
-        # Obter numHash e antigoHash
-        numHash, antigoHash = invoice.validar_hash()
+            # Obter numHash e antigoHash
+            numHash, antigoHash = invoice.validar_hash()
 
-        totalbruto = invoice.amount_total
+            totalbruto = invoice.amount_total
 
-        # Tipo de documento (usar série SAFT para distinguir FT, FR, ND, etc.)
-        if invoice.move_type == 'out_refund':
-            tipo = 'NC'
-        else:
-            # FT, FR, ND e outros out_invoice → respeitar saft_inv_type do diário
-            tipo = invoice.journal_id.saft_inv_type or 'OU'
+            # Tipo de documento (usar série SAFT para distinguir FT, FR, ND, etc.)
+            if invoice.move_type == 'out_refund':
+                tipo = 'NC'
+            else:
+                # FT, FR, ND e outros out_invoice → respeitar saft_inv_type do diário
+                tipo = invoice.journal_id.saft_inv_type or 'OU'
 
-        # Número final do documento (ex.: "FT A2025/1")
-        number = f"{tipo} {invoice.name}"
+            # Número final do documento (ex.: "FT A2025/1")
+            number = f"{tipo} {invoice.name}"
 
-        # Certificar que hash_control está definido antes de gerar
-        invoice.hash_control = invoice.hash_control or "1"
+            # Certificar que hash_control está definido antes de gerar
+            invoice.hash_control = invoice.hash_control or "1"
 
-        # Chamada para gerar o hash
-        values = hash_generation.hash(
-            invoice,
-            invoice.journal_id.integrado,
-            invoice.journal_id.manual,
-            datadocumento,
-            datasistema,
-            number,
-            identi,
-            numHash,
-            antigoHash,
-            totalbruto
-        )
-        invoice.write(values)
+            # Chamada para gerar o hash
+            values = hash_generation.hash(
+                invoice,
+                invoice.journal_id.integrado,
+                invoice.journal_id.manual,
+                datadocumento,
+                datasistema,
+                number,
+                identi,
+                numHash,
+                antigoHash,
+                totalbruto
+            )
+            invoice.write(values)
 
     def treat_atcud(self):
         for invoice in self:
@@ -410,7 +411,7 @@ class AccountMove(models.Model):
                     'journal_id': invoice.modo_pagar_vd.id,
                     'partner_id': invoice.partner_id.id,
                     'currency_id': company_currency != current_currency and current_currency.id or False,
-                    'amount_currency': company_currency != current_currency and sign * self.amount_total or 0.0,
+                    'amount_currency': company_currency != current_currency and sign * invoice.amount_total or 0.0,
                     'date': invoice.invoice_date,
                     'date_maturity': invoice.invoice_due_date
                 }
