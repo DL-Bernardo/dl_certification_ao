@@ -16,7 +16,6 @@ def _pre_init_hook(env):
 
     journal_xml_ids = [
         'opc_journal_ft',
-        'opc_journal_nd',
         'opc_journal_fr',
         'opc_journal_nc',
     ]

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
 
@@ -8,7 +8,7 @@
             <field name="res_model">account.move</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FT')]</field>
-            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_journal_ft')}"/>
+            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_certification_ao_v17.opc_journal_ft')}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>
         </record>
 
@@ -24,7 +24,7 @@
             <field name="res_model">account.move</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FR')]</field>
-            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_journal_fr')}"/>
+            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_certification_ao_v17.opc_journal_fr')}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>
         </record>
 
@@ -34,31 +34,11 @@
                   parent="account.menu_finance_receivables"
                   sequence="2"/>
 
-        <!-- Esconder o menu original de Faturas de Cliente -->
-        <record id="account.menu_action_move_out_invoice_type" model="ir.ui.menu">
-            <field name="active" eval="False"/>
-        </record>
 
         <!-- Adicionar contexto à ação de Nota de Crédito para definir o diário padrão -->
         <record id="account.action_move_out_refund_type" model="ir.actions.act_window">
-            <field name="context" eval="{'default_move_type': 'out_refund', 'default_journal_id': ref('opc_journal_nc')}"/>
+            <field name="context" eval="{'default_move_type': 'out_refund', 'default_journal_id': ref('opc_certification_ao_v17.opc_journal_nc')}"/>
         </record>
-
-        <!-- Ação para Nota de Débito -->
-        <record id="action_move_out_invoice_debit_note" model="ir.actions.act_window">
-            <field name="name">Notas de Débito</field>
-            <field name="res_model">account.move</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'ND')]</field>
-            <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('opc_journal_nd')}"/>
-            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
-        </record>
-
-        <!-- Menu para Nota de Débito -->
-        <menuitem id="menu_action_move_out_invoice_debit_note"
-                  action="action_move_out_invoice_debit_note"
-                  parent="account.menu_finance_receivables"
-                  sequence="4"/>
 
     </data>
 </odoo>

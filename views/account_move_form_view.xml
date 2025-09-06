@@ -20,9 +20,9 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="invoice_origin_id"
-                       invisible="[('journal_id.saft_inv_type', 'not in', ['NC', 'ND'])]"/>
+                       invisible="[('journal_id.saft_inv_type', '!=', 'NC')]"/>
                 <field name="invoice_origin"
-                       invisible="[('journal_id.saft_inv_type', 'in', ['NC', 'ND'])]" force_save="1"/>
+                       invisible="[('journal_id.saft_inv_type', '=', 'NC')]" force_save="1"/>
             </xpath>
         </field>
     </record>

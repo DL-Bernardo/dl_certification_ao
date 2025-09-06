@@ -9,16 +9,6 @@
             <field name="company_id" ref="base.main_company"/>
         </record>
 
-        <record id="opc_journal_nd" model="account.journal">
-            <field name="name">Nota de Débito (OPC)</field>
-            <field name="code">ND</field>
-            <field name="type">sale</field>
-            <field name="refund_sequence" eval="True"/>
-            <field name="saft_inv_type">ND</field>
-            <field name="allow_date" eval="False"/>
-            <field name="company_id" ref="base.main_company"/>
-        </record>
-
         <record id="opc_journal_fr" model="account.journal">
             <field name="name">Fatura-Recibo (OPC)</field>
             <field name="code">FR</field>

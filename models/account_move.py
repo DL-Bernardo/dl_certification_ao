@@ -204,8 +204,8 @@ class AccountMove(models.Model):
             if invoice.journal_id.saft_inv_type == 'VD':
                 raise ValidationError('Incompleto !\n Nao pode usar Vendas a Dinheiro.')
 
-            # Origin obrigatorio if NC ou ND
-            if invoice.journal_id.saft_inv_type in ['NC', 'ND'] and not invoice.invoice_origin_id:
+            # Origin obrigatorio if NC
+            if invoice.journal_id.saft_inv_type == 'NC' and not invoice.invoice_origin_id:
                 raise ValidationError('Incompleto !\n Com diario selecionado, o campo Doc. Origem na fatura '
                                       'tem de ser preenchido.')
 
