@@ -205,9 +205,9 @@ class AccountMove(models.Model):
                 raise ValidationError('Incompleto !\n Nao pode usar Vendas a Dinheiro.')
 
             # Origin obrigatorio if NC ou ND
-            #if invoice.journal_id.saft_inv_type in ['NC', 'ND'] and not invoice.invoice_origin_id:
-            #    raise ValidationError('Incompleto !\n Com diario selecionado, o campo Doc. Origem na fatura '
-            #                          'tem de ser preenchido.')
+            # if invoice.journal_id.saft_inv_type in ['NC', 'ND'] and not invoice.invoice_origin_id:
+            #     raise ValidationError('Incompleto !\n Com diario selecionado, o campo Doc. Origem na fatura '
+            #                           'tem de ser preenchido.')
 
             # verificar se é de pagamento automatico
             if invoice.journal_id.paga_me:
@@ -254,26 +254,31 @@ class AccountMove(models.Model):
         """
         Calcula o número de documentos anteriores e obtém o hash do
         documento imediatamente anterior, respeitando a série (saft_inv_type).
-        Isto garante que cada tipo de documento (FT, NC, ND, FR, etc.)
-        encadeia apenas dentro da sua própria série.
+        Esta função garante que FT, NC, ND, FR têm cadeias de hash independentes.
         """
         self.ensure_one()
 
-        # Domínio: documentos anteriores, do mesmo diário e mesma série SAFT
+        # Determinar o tipo SAFT (FT, NC, ND, FR, etc.)
+        saft_type = self.journal_id.saft_inv_type or 'FT'
+
+        # Domínio: documentos anteriores do mesmo diário e mesma série SAFT
         domain = [
             ('state', '=', 'posted'),
             ('journal_id', '=', self.journal_id.id),
-            ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
-            ('id', '<', self.id), # garante que só pega documentos anteriores para series correspondentes
+            ('journal_id.saft_inv_type', '=', saft_type),
+            ('id', '<', self.id),
             ('hash', '!=', False),
         ]
 
-        # Número de documentos anteriores (numHash)
+        # Número de documentos anteriores nesta série
         numHash = self.search_count(domain)
 
-        # Documento imediatamente anterior para obter o hash
+        # Documento imediatamente anterior nesta série
         previous_invoice = self.search(domain, order='id desc', limit=1)
         antigoHash = previous_invoice.hash if previous_invoice else '0'
+
+        # Debug opcional (para confirmar que a série está a ser respeitada)
+        self.message_post(body=f"[DEBUG HASH] Série={saft_type}, numHash={numHash}, antigoHash={antigoHash[:12]}...")
 
         return numHash, antigoHash
 
@@ -303,7 +308,7 @@ class AccountMove(models.Model):
                 # FT, FR, ND e outros out_invoice → respeitar saft_inv_type do diário
                 tipo = invoice.journal_id.saft_inv_type or 'OU'
 
-            # Número final do documento (ex.: "FT A2025/1")
+            # Número final do documento (ex.: "FT A/2025/0001")
             number = f"{tipo} {invoice.name}"
 
             # Certificar que hash_control está definido antes de gerar

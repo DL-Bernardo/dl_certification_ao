@@ -13,35 +13,31 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     if sys.platform == "win32" or integrado:
         return {'hash': '', 'hash_date': datasistema, 'hash_control': '0'}
 
-    # --- SEMPRE descobrir o hash anterior no mesmo diário/série ---
+    move = self  # alias para clareza
+
+    # --- Determinar hash anterior por ordem numérica ---
     prev_hash = ""
+    saft_type = move.journal_id.saft_inv_type or 'FT'
+
     prev_move = self.env['account.move'].search([
-        ('journal_id', '=', self.journal_id.id),
-        ('company_id', '=', self.company_id.id),
+        ('journal_id', '=', move.journal_id.id),
+        ('company_id', '=', move.company_id.id),
         ('state', '=', 'posted'),
-        ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
-        ('id', '!=', self.id),
+        ('journal_id.saft_inv_type', '=', saft_type),
+        ('id', '!=', move.id),
+        ('name', '<', move.name),  # encadeamento sequencial
         ('hash', '!=', False),
         ('hash', '!=', ''),
-        ('hash_date', '<', datasistema),  # encadear por data de sistema
-    ], order='hash_date desc, id desc', limit=1)
-
-    # fallback caso hash_date ainda não exista em dados antigos
-    if not prev_move:
-        prev_move = self.env['account.move'].search([
-            ('journal_id', '=', self.journal_id.id),
-            ('company_id', '=', self.company_id.id),
-            ('state', '=', 'posted'),
-            ('journal_id.saft_inv_type', '=', self.journal_id.saft_inv_type),
-            ('id', '<', self.id),
-            ('hash', '!=', False),
-            ('hash', '!=', ''),
-        ], order='id desc', limit=1)
+    ], order='name desc', limit=1)
 
     if prev_move:
-        prev_hash = prev_move.hash or ""
-        # remover espaços/quebras de linha/eventuais tabs
-        prev_hash = "".join(prev_hash.split())
+        prev_hash = "".join((prev_move.hash or "").split())
+        prev_move_id = prev_move.id
+        prev_move_name = prev_move.name
+    else:
+        prev_hash = ""
+        prev_move_id = None
+        prev_move_name = None
 
     # Caminhos
     hash_dir = "/opt/hashDir/"
@@ -58,21 +54,18 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
 
     # Mensagem base (1º registo termina em ';')
     entrada_txt = f"{datadocumento};{datasistema_fmt};{number};{totalbruto_fmt};"
-    # Registos seguintes: acrescentar o hash anterior (sem ';' no fim)
     if prev_hash:
         entrada_txt += prev_hash
 
     # Logs de diagnóstico
-    prev_len = len(prev_hash) if prev_hash else 0
-    prev_tail = prev_hash[-8:] if prev_hash else ""
     if _logger:
+        _logger.info(
+            "[DEBUG HASH] Série=%s, atual=%s, anterior=%s (id=%s)",
+            saft_type, move.name, prev_move_name, prev_move_id
+        )
         _logger.info(f"[DEBUG HASH] numHash={numHash}, antigoHash(param)={repr(antigoHash)}")
-        _logger.info(f"[DEBUG HASH] prev_move_id={prev_move.id if prev_move else None}, prev_hash_len={prev_len}, prev_hash_tail={prev_tail}")
-        _logger.info(f"[DEBUG HASH] InvoiceNo usado: {number}")
         _logger.info(f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
-    self.message_post(body=f"[DEBUG HASH] numHash={numHash}, antigoHash(param)={repr(antigoHash)}")
-    self.message_post(body=f"[DEBUG HASH] prev_move_id={prev_move.id if prev_move else None}, prev_hash_len={prev_len}, prev_hash_tail={prev_tail}")
-    self.message_post(body=f"[DEBUG HASH] InvoiceNo usado: {number}")
+    self.message_post(body=f"[DEBUG HASH] Série={saft_type}, atual={move.name}, anterior={prev_move_name} (id={prev_move_id})")
     self.message_post(body=f"[DEBUG HASH] String para assinar: '{entrada_txt}'")
 
     # Escrever ficheiro a assinar (sem newline no fim)
@@ -90,10 +83,10 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
         raise UserError(_("Erro ao gerar assinatura digital: %s") % e)
 
     with open(b64_path, "r") as f:
-        novohash = "".join((f.read() or "").split())  # garantir sem quebras/esp.
+        novohash = "".join((f.read() or "").split())
 
     values = {'hash': novohash, 'hash_date': datasistema}
-    values['hash_control'] = f"1-{self.journal_id.saft_inv_type}M {self.origin or ''}" if manual else "1"
+    values['hash_control'] = f"1-{move.journal_id.saft_inv_type}M {move.origin or ''}" if manual else "1"
 
     self.message_post(body=f"[DEBUG HASH] Hash gerado: {novohash}")
     if _logger:

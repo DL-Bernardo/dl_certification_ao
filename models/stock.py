@@ -9,7 +9,8 @@ from . import hash_generation
 from pytz import timezone
 from . import qr_code_generation
 
-tz_pt = timezone('Europe/Lisbon')
+# Timezone Angola
+tz_ao = timezone('Africa/Luanda')
 
 
 # linhas das guias ou movimentos de stock - Armazem - Relatorios - Movimentos de Stock
@@ -27,7 +28,6 @@ class StockPickingType(models.Model):
                              default=True, copy=False)
     sequence_id_validate = fields.Many2one('ir.sequence', string='Sequencia Validada')
     sequence_id_gd_validate = fields.Many2one('ir.sequence', string='Sequencia GD Validada')
-
 
     @api.constrains('sequence_id_validate', 'sequence_id_gd_validate')
     def _check_sequence_(self):
@@ -93,7 +93,7 @@ class StockPicking(models.Model):
                               picking.partner_id.vat
                 pais_cliente = picking.partner_id.commercial_partner_id and picking.partner_id.commercial_partner_id.country_id and \
                                picking.partner_id.commercial_partner_id.country_id.code or (picking.partner_id.country_id and \
-                                                                                         picking.partner_id.country_id.code or 'PT')
+                                                                                         picking.partner_id.country_id.code or 'AO')
 
                 wizard_atcud = self.env['alert.atcud']
                 tipo_documento = wizard_atcud.get_tipo_documento_from_sequence(self._get_sequence_for_atcud())
@@ -270,7 +270,7 @@ class StockPicking(models.Model):
                     else:
                         carga_rua = picking.carga_rua or ''
                         carga_codigo_postal = picking.carga_cp or ''
-                        carga_cidade = picking.carga_cidade or ''
+                        carga_cidade = picking.cidade or ''
                         carga_pais = picking.carga_pais.code
                 else:
                     carga_rua = empresa_rua
@@ -388,7 +388,7 @@ class StockPicking(models.Model):
                 else:
                     raise ValidationError(_('A guia tem de possuir um parceiro de destino!'))
 
-                if descarga_pais != 'PT' or cliente_pais != 'PT':
+                if descarga_pais != 'AO' or cliente_pais != 'AO':
                     return True
 
                 if not picking.data_carga:
@@ -432,7 +432,7 @@ class StockPicking(models.Model):
                 return True
 
     def validar_hash(self):
-        # verificar se é a primeira factura ou nota de credito
+        # verificar se é a primeira guia
         self.env.cr.execute("""
             SELECT COUNT(*)
             FROM stock_picking s
@@ -441,7 +441,7 @@ class StockPicking(models.Model):
             extract(YEAR FROM s.date)=%s and
             s.company_id=%s""", (self.picking_type_id.id, self.date.year, self.company_id.id))
         numHash = self.env.cr.fetchone()[0]
-        # Se não for a primeira factura ou nota de encomenda vai buscar o hash anterior
+        # Se não for a primeira guia vai buscar o hash anterior
         antigoHash = False
         if numHash > 0:
             self.env.cr.execute("""
@@ -547,7 +547,7 @@ class StockPicking(models.Model):
                     if nome_emp and nome_emp[0]:
                         nome_emp = _(nome_emp[0])
                     else:
-                        nome_emp = str(datetime.now(tz_pt))
+                        nome_emp = str(datetime.now(tz_ao))
                     for key in [" ", ".", ":", "-"]:
                         nome_emp = str(nome_emp).replace(key, "")
 
