@@ -1,0 +1,32 @@
+<odoo>
+    <data noupdate="1">
+        <!--
+            As contas contabilísticas (account_id) para estas retenções
+            devem ser configuradas manualmente após a instalação em:
+            Contabilidade > Configuração > Retenção na Fonte
+        -->
+        <record id="wt_lei_19_14_mn" model="withholding.tax">
+            <field name="name">II - Serviços (6.5%)</field>
+            <field name="code">II</field>
+            <field name="tax_type">ii</field>
+            <field name="percentage">6.5</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="wt_lei_19_14_me" model="withholding.tax">
+            <field name="name">II - Serviços (Não Residentes - 15%)</field>
+            <field name="code">II</field>
+            <field name="tax_type">ii</field>
+            <field name="percentage">15</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="wt_ipu" model="withholding.tax">
+            <field name="name">IPU - Rendas (15%)</field>
+            <field name="code">IPU</field>
+            <field name="tax_type">ipu</field>
+            <field name="percentage">15</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+    </data>
+</odoo>

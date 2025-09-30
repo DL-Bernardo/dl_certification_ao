@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DL Withholding Tax Angola</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; color: #222; line-height: 1.6; margin: 20px; }
+    .container { max-width: 900px; margin: auto; }
+    h1 { font-size: 28px; margin-bottom: 6px; }
+    h2 { font-size: 20px; margin-top: 22px; }
+    p.lead { color: #444; margin-top: 0; font-size: 1.05rem; }
+    .note { background:#fff7e6; border-left:4px solid #ffb74d; padding:10px 12px; margin:10px 0; border-radius:4px; }
+    .sshot { max-width: 100%; border: 1px solid #e0e0e0; margin: 10px 0; border-radius: 6px; display:block; }
+    .support { background:#f8f9fb; padding:12px; border-radius:6px; margin-top:18px; }
+    ul { margin-left: 1.2rem; }
+    .meta { color:#666; font-size:0.95rem; margin-top:6px; }
+    .badge { display:inline-block; padding:6px 10px; background:#eef6ff; color:#0a66c2; border-radius:4px; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🇦🇴 DL Withholding Tax — Angola</h1>
+    <p class="lead">🧾 Add withholding tax (Retenção na Fonte) support to Odoo 15 — tailored for Angolan fiscal rules and SAFT export requirements.</p>
+
+    <div class="note">
+      <strong>Legal / SAFT note:</strong> This module can add the <code>withholding_tax</code> field to the SAFT file (as required by local AGT rules). Always confirm your SAFT configuration with your tax advisor or the AGT requirements for your company. ⚖️
+    </div>
+
+    <h2>✨ Key Features</h2>
+    <ul>
+      <li>⚙️ Configure multiple withholding tax types (different laws / rates).</li>
+      <li>📄 Apply withholding per invoice line (supplier invoices / vendor bills).</li>
+      <li>🧮 Automatic calculation of withholding amount and net payable.</li>
+      <li>🖨️ Display withholding on invoice form and PDF reports.</li>
+      <li>🗂️ Optional inclusion of withholding in SAFT Angola export for AGT compliance.</li>
+    </ul>
+
+    <h2>⚙️ Installation</h2>
+    <ol>
+      <li>Copy the folder <code>dl_withholding_tax_ao</code> to your Odoo addons directory.</li>
+      <li>Restart the Odoo service.</li>
+      <li>Activate Developer Mode.</li>
+      <li>Apps → Update Apps List → search for <strong>"Withholding Tax Angola"</strong> and Install.</li>
+    </ol>
+
+    <h2>🧑‍💻 Usage</h2>
+    <h3>Configure rates</h3>
+    <ol>
+      <li>Accounting → Configuration → Withholding Tax (Retenção na Fonte).</li>
+      <li>Create new tax types or edit existing ones — set percent and base rules.</li>
+    </ol>
+
+    <h3>Apply withholding on an invoice</h3>
+    <ol>
+      <li>Create a vendor bill (supplier invoice).</li>
+      <li>On an invoice line, select the desired <strong>Withholding</strong> tax.</li>
+      <li>Save the invoice — the withholding amount and net payable will show in totals.</li>
+    </ol>
+
+    <h2>📸 Screenshots</h2>
+    <p class="meta">Images below illustrate configuration and invoice flow.</p>
+    <img src="screenshot1.png" alt="Withholding tax configuration" class="sshot" />
+    <img src="screenshot2.png" alt="Invoice line with withholding selected" class="sshot" />
+    <img src="screenshot3.png" alt="Invoice totals showing withholding and net payable" class="sshot" />
+
+    <h2>🔍 Example</h2>
+    <p>Invoice: <strong>100,000 Kz</strong> — Withholding 6.5% → Withholding = <strong>6,500 Kz</strong>, Net payable = <strong>93,500 Kz</strong>.</p>
+
+    <div class="support">
+      <h2>💬 Support</h2>
+      <ul>
+        <li>📧 Email: <a href="mailto:geral@digitalub.ao">geral@digitalub.ao</a></li>
+      </ul>
+      <p class="meta">Compatibility: Odoo 15.0 | License: AGPL-3</p>
+    </div>
+
+    <p class="meta">👨‍💻 Developed by DIGITALUB ANGOLA, LDA — <a href="https://www.digitalub.ao" target="_blank" rel="noopener">digitalub.ao</a></p>
+  </div>
+</body>
+</html>

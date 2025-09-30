@@ -1,0 +1,50 @@
+<odoo>
+    <menuitem id="menu_withholding_root" name="Retenção na Fonte"
+              parent="account.menu_finance_configuration" sequence="20"/>
+
+    <record id="view_withholding_tree" model="ir.ui.view">
+        <field name="name">withholding.tax.tree</field>
+        <field name="model">withholding.tax</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="tax_type"/>
+                <field name="percentage"/>
+                <field name="account_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_withholding_form" model="ir.ui.view">
+        <field name="name">withholding.tax.form</field>
+        <field name="model">withholding.tax</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="tax_type"/>
+                        <field name="percentage"/>
+                        <field name="account_id" required="1"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_withholding" model="ir.actions.act_window">
+        <field name="name">Retenção na Fonte</field>
+        <field name="res_model">withholding.tax</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_withholding_action"
+              name="Configuração de Retenções"
+              parent="menu_withholding_root"
+              action="action_withholding"
+              sequence="10"/>
+</odoo>

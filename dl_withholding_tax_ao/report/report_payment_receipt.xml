@@ -1,0 +1,17 @@
+<odoo>
+    <template id="report_payment_receipt_inherit_withholding" inherit_id="account.report_payment_receipt_document">
+        <xpath expr="//tr[td/span[@t-field='inv.amount_total']]" position="after">
+            <t t-if="inv.withholding_amount > 0">
+                <tr class="text-muted">
+                    <td/>
+                    <td colspan="3">
+                        <em>Retenção na Fonte</em>
+                    </td>
+                    <td class="text-right">
+                        <em>(- <span t-field="inv.withholding_amount" t-options='{"widget": "monetary", "display_currency": inv.currency_id}'/>)</em>
+                    </td>
+                </tr>
+            </t>
+        </xpath>
+    </template>
+</odoo>

@@ -1,0 +1,75 @@
+<odoo>
+    <template id="report_withholding_document">
+        <t t-call="web.html_container">
+            <t t-set="data_report_margin_top" t-value="30"/>
+            <t t-set="data_report_header_spacing" t-value="25"/>
+            <t t-set="data_report_dpi" t-value="110"/>
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2 class="text-center">Mapa de Retenção na Fonte</h2>
+
+                    <div class="row mt32 mb32">
+                        <div class="col-6">
+                            <strong>Empresa:</strong> <span t-field="company.name"/><br/>
+                            <strong>NIF:</strong> <span t-field="company.vat"/>
+                        </div>
+                        <div class="col-6 text-right">
+                            <strong>Período de:</strong> <span t-esc="date_from.strftime('%d/%m/%Y')"/>
+                            <strong>Até:</strong> <span t-esc="date_to.strftime('%d/%m/%Y')"/>
+                        </div>
+                    </div>
+
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Nº Fatura</th>
+                                <th>Parceiro</th>
+                                <th>NIF Parceiro</th>
+                                <th>Base (AOA)</th>
+                                <th>Taxa (%)</th>
+                                <th>Valor Retido (AOA)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="total_withholding" t-value="0"/>
+                            <t t-foreach="docs" t-as="invoice">
+                                <tr>
+                                    <td><span t-field="invoice.invoice_date"/></td>
+                                    <td><span t-field="invoice.name"/></td>
+                                    <td><span t-field="invoice.partner_id.name"/></td>
+                                    <td><span t-field="invoice.partner_id.vat"/></td>
+                                    <td class="text-right"><span t-field="invoice.amount_untaxed"/></td>
+                                    <td class="text-center"><span t-esc="invoice.withholding_tax_id.percentage"/></td>
+                                    <td class="text-right"><span t-field="invoice.withholding_amount"/></td>
+                                </tr>
+                                <t t-set="total_withholding" t-value="total_withholding + invoice.withholding_amount"/>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div class="row justify-content-end">
+                        <div class="col-4">
+                            <table class="table table-sm">
+                                <tr class="border-black">
+                                    <td><strong>Total Retido</strong></td>
+                                    <td class="text-right">
+                                        <span t-esc="total_withholding" t-options='{"widget": "monetary", "display_currency": company.currency_id}'/>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_withholding">
+        <t t-call="odoo.report_xml_helpers">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="ao_withholding.report_withholding_document" t-lang="o.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+</odoo>
