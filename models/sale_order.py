@@ -245,7 +245,7 @@ class SaleOrder(models.Model):
                 sale_order.hash_date = values.get('hash_date')
                 sale_order.hash_control = values.get('hash_control')
                 sale_order.certificated = True
-            sale_order._compute_amount_all() # Recompute totals after all changes
+            # sale_order._compute_amount_all() # Recompute totals after all changes
 
     #       Certificação e envio por email das SO
     def action_quotation_send(self):
@@ -316,11 +316,6 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
-    price_subtotal = fields.Float(digits=dp.get_precision('Product Price'), compute='_compute_amount',
-                                  string='Subtotal', readonly=True, store=True)
-    price_tax = fields.Float(digits=dp.get_precision('Product Price'), compute='_compute_amount',
-                             string='Price with Taxes', readonly=True, store=True)
-
     @api.depends('product_uom_qty', 'discount', 'price_unit', 'tax_id')
     def _compute_amount(self):
         for line in self:
@@ -334,8 +329,9 @@ class SaleOrderLine(models.Model):
                 partner=line.order_id.partner_shipping_id
             )
 
-            line.price_subtotal = float_round(taxes['total_excluded'], precision_digits=2)
-            line.price_tax = float_round(taxes['total_included'] - taxes['total_excluded'], precision_digits=2)
+            line.price_total = taxes['total_included']
+            line.price_subtotal = taxes['total_excluded']
+            line.price_tax = taxes['total_included'] - taxes['total_excluded']
 
     # nao permitir mais do que um imposto nas linhas dos orcamentos
     @api.constrains('tax_id')
