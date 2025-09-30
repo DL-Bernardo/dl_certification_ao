@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import setup_hooks
+from . import hash_sale_order
+from . import hash_stock_picking
 from . import account_tax
 from . import account_account
 from . import taxonomia

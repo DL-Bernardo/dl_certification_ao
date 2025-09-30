@@ -1317,7 +1317,8 @@ class WizardSaft(models.Model):
         _logger.info("saft :", ' A exportar sale_orders')
         #   4.3.
         #   4.3.4.1.    (DocumentNumber)*
-        et.SubElement(eparent, u"DocumentNumber").text = sale.name
+        et.SubElement(eparent, u"DocumentNumber").text = f"{sale.type_doc} {sale.name}"
+        #et.SubElement(eparent, u"DocumentNumber").text = sale.name
         #  4.3.4.2. (ACTUD)*
         et.SubElement(eparent, u"ATCUD").text = sale.atcud or '0'
         #  4.3.4.3. (DocumentStatus)*
@@ -1381,7 +1382,8 @@ class WizardSaft(models.Model):
                       ('date_order', '<=', final_date),
                       ('company_id', '=', empresa),
                       ('certificated', '=', True)]
-        sale_order = self.env['sale.order'].sudo().search(args_sales)
+        sale_order = self.env['sale.order'].sudo().search(args_sales, order='type_doc, id')
+        #sale_order = self.env['sale.order'].sudo().search(args_sales)
         if sale_order:
             esource_documents = et.Element('SourceDocuments')
             for element in esource_documents:
@@ -1461,7 +1463,8 @@ class WizardSaft(models.Model):
                                 # 4.1.4.14.13.1. (TaxType)
                                 et.SubElement(etax, u"TaxType").text = str(tax.saft_tax_type)
                                 # 4.1.4.14.13.2. (TaxCountryRegion)
-                                et.SubElement(etax, u"TaxCountryRegion").text = str(tax.country_region)
+                                et.SubElement(etax, u"TaxCountryRegion").text = 'AO'  # Forçar 'AO'
+                                #et.SubElement(etax, u"TaxCountryRegion").text = str(tax.country_region)
                                 # 4.3.4.14.15.3. (TaxCode)*
                                 et.SubElement(etax, u"TaxCode").text = str(tax.saft_tax_code)
                                 # 4.3.4.14.15.4. (TaxPercentage)**
@@ -1495,7 +1498,6 @@ class WizardSaft(models.Model):
                     # 4.3.4.15.3. (GroossTotal)*
                     egross_total = et.SubElement(edocument_totals, u"GrossTotal")
                     egross_total.text = "{:.2f}".format(float(sale.grosstotal()))
-
                     if sale.currency_id.name != 'AOA':
                         ecurrency = et.SubElement(edocument_totals, u"Currency")
                         # 4.3.4.15.4.1. (CurrencyCode)*

@@ -4,7 +4,7 @@
         <record id="pickingint_validate_sequence" model="ir.sequence">
             <field name="name">MovimentosInternos"</field>
             <field name="code">stock.picking.internal.validate</field>
-            <field name="prefix">GT %(year)s/</field>
+            <field name="prefix">GT%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_increment">1</field>
             <field name="implementation">no_gap</field>
@@ -13,7 +13,7 @@
         <record id="pickingout_validate_sequence" model="ir.sequence">
             <field name="name">MovimentosSaida"</field>
             <field name="code">stock.picking.out.validate</field>
-            <field name="prefix">GR %(year)s/</field>
+            <field name="prefix">GR%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_increment">1</field>
             <field name="implementation">no_gap</field>
@@ -22,7 +22,7 @@
         <record id="pickingin_validate_sequence" model="ir.sequence">
             <field name="name">MovimentosEntrada</field>
             <field name="code">stock.picking.in.validate</field>
-            <field name="prefix">GI %(year)s/</field>
+            <field name="prefix">GI%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_increment">1</field>
             <field name="implementation">no_gap</field>
@@ -45,8 +45,8 @@
         </record>
 
         <record id="retorno_vendas_sequence" model="ir.sequence">
-            <field name="name">Retorno de Vendas</field>
-            <field name="prefix">RV%(year)s/</field>
+            <field name="name">Nota de Crédito Vendas</field>
+            <field name="prefix">NC%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_increment">1</field>
             <field name="implementation">no_gap</field>

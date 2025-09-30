@@ -2,18 +2,16 @@
 import os
 import sys
 import subprocess
+import re
 from pathlib import Path
 from odoo import _
 from odoo.exceptions import UserError
-from . import sale_order
 from datetime import datetime
 
-
-def hash_sale_order(self, integrado, manual, datadocumento, datasistema, number,
-                    identi, numHash, antigoHash, totalbruto):
+def hash_stock_picking(self, integrado, manual, datadocumento, datasistema, number,
+                       identi, numHash, antigoHash, totalbruto):
     _logger = getattr(self, '_logger', None)
 
-    # Se datasistema não for passado, usar hora do sistema
     if not datasistema:
         datasistema = datetime.now()
     elif isinstance(datasistema, str):
@@ -25,36 +23,36 @@ def hash_sale_order(self, integrado, manual, datadocumento, datasistema, number,
             except ValueError:
                 datasistema = datetime.now()
 
-    # Windows ou integrado → ignora hash
     if sys.platform == "win32" or integrado:
         return {'hash': '', 'hash_date': datasistema, 'hash_control': '0'}
 
-    move = self  # alias
+    move = self  # alias for stock.picking
 
-    # --- Determinar tipo de documento (OR, PP, NE, FC) ---
-    saft_type = move.type_doc or "OR"
-
-    # --- Procurar o documento anterior usando ordenação natural ---
-    import re
-
-    def natural_sort_key(so):
-        s = so.name or ''
+    # --- Determinar hash anterior usando ordenação natural ---
+    def natural_sort_key(record):
+        s = record.name or ''
         if not s: return []
         return [int(part) if part.isdigit() else part.lower() for part in re.split(r'(\d+)', s)]
 
-    # Procurar todos os candidatos da mesma série
+    # --- Determinar série SAFT (código curto, ex: GR, GT, etc.) ---
+    saft_type_value = move.picking_type_id
+    saft_type = getattr(move.picking_type_id, "saft_doc_type", None) or "GR"
+
+    #saft_type_field = 'picking_type_id'
+    #saft_type_value = move.picking_type_id
+    #saft_type = saft_type_value.name or 'STOCK'
+
     domain = [
         ('company_id', '=', move.company_id.id),
-        ('type_doc', '=', saft_type),
-        ('certificated', '=', True),
+        ('picking_type_id', '=', saft_type_value.id),
+        ('state', '=', 'done'),
         ('id', '!=', move.id),
         ('hash', 'not in', [False, '']),
     ]
-    candidate_orders = self.env['sale.order'].search(domain)
+    candidate_docs = self.env['stock.picking'].search(domain)
 
-    # Filtrar e ordenar para encontrar o predecessor
-    current_so_key = natural_sort_key(move)
-    predecessors = [so for so in candidate_orders if natural_sort_key(so) < current_so_key]
+    current_key = natural_sort_key(move)
+    predecessors = [doc for doc in candidate_docs if natural_sort_key(doc) < current_key]
 
     prev_hash = ""
     prev_move_id = None
@@ -64,15 +62,7 @@ def hash_sale_order(self, integrado, manual, datadocumento, datasistema, number,
         prev_move = predecessors[-1]
         prev_hash = "".join((prev_move.hash or "").split())
         prev_move_id = prev_move.id
-        prev_move_name = f"{prev_move.type_doc} {prev_move.name}"
-
-    # Caminhos
-    hash_dir = "/opt/hashDir/"
-    chave_privada = "/opt/hashDir/ChavePrivadaAO.pem"
-    Path(hash_dir).mkdir(parents=True, exist_ok=True)
-
-    if not all([datadocumento, datasistema, number, totalbruto is not None]):
-        raise UserError(_("Dados incompletos para geração do hash."))
+        prev_move_name = prev_move.name
 
     # --- Preparar dados para o hash ---
     # Garantir que datadocumento tem apenas a data no formato YYYY-MM-DD
@@ -80,11 +70,11 @@ def hash_sale_order(self, integrado, manual, datadocumento, datasistema, number,
         datadocumento_fmt = datadocumento.strftime("%Y-%m-%d")
     else:
         datadocumento_fmt = str(datadocumento)[:10]
-    # Formatação
+
     datasistema_fmt = datasistema.strftime("%Y-%m-%dT%H:%M:%S")
     totalbruto_fmt = "{:.2f}".format(float(totalbruto)).replace(",", ".")
 
-    # Importante: concatenar o tipo + número
+    # Número completo no formato SAFT: "Série + espaço + number"
     numero_completo = f"{saft_type} {number}"
 
     entrada_txt = f"{datadocumento_fmt};{datasistema_fmt};{numero_completo};{totalbruto_fmt};"
@@ -94,28 +84,29 @@ def hash_sale_order(self, integrado, manual, datadocumento, datasistema, number,
     # Debug
     if _logger:
         _logger.info(
-            "[DEBUG HASH SALE] Série=%s, atual=%s, anterior=%s (id=%s)",
+            "[DEBUG HASH STOCK] Série=%s, atual=%s, anterior=%s (id=%s)",
             saft_type, numero_completo, prev_move_name, prev_move_id
         )
-        _logger.info(f"[DEBUG HASH SALE] numHash={numHash}, antigoHash={repr(antigoHash)}")
-        _logger.info(f"[DEBUG HASH SALE] String para assinar: '{entrada_txt}'")
-    self.message_post(body=f"[DEBUG HASH SALE] Série={saft_type}, atual={numero_completo}, anterior={prev_move_name} (id={prev_move_id})")
-    self.message_post(body=f"[DEBUG HASH SALE] String para assinar: '{entrada_txt}'")
+        _logger.info(f"[DEBUG HASH STOCK] String para assinar: '{entrada_txt}'")
+    self.message_post(body=f"[DEBUG HASH STOCK] Série={saft_type}, atual={numero_completo}, anterior={prev_move_name} (id={prev_move_id})")
+    self.message_post(body=f"[DEBUG HASH STOCK] String para assinar: '{entrada_txt}'")
 
-    # Escrever ficheiro
+    # --- Assinatura ---
+    hash_dir = "/opt/hashDir/"
+    chave_privada = "/opt/hashDir/ChavePrivadaAO.pem"
+    Path(hash_dir).mkdir(parents=True, exist_ok=True)
+
     txt_path = os.path.join(hash_dir, f"{identi}.txt")
     with open(txt_path, "w", encoding="utf-8", newline="\n") as f:
-    #with open(txt_path, "w", newline="") as f:
         f.write(entrada_txt)
 
-    # Assinar
     sha1_path = os.path.join(hash_dir, f"{identi}.sha1")
     b64_path = os.path.join(hash_dir, f"{identi}.b64")
     try:
         subprocess.run(['openssl', 'dgst', '-sha1', '-sign', chave_privada, '-out', sha1_path, txt_path], check=True)
         subprocess.run(['openssl', 'enc', '-base64', '-in', sha1_path, '-out', b64_path, '-A'], check=True)
     except subprocess.CalledProcessError as e:
-        raise UserError(_("Erro ao gerar assinatura digital (sale.order): %s") % e)
+        raise UserError(_("Erro ao gerar assinatura digital (stock.picking): %s") % e)
 
     with open(b64_path, "r") as f:
         novohash = "".join((f.read() or "").split())
@@ -123,8 +114,8 @@ def hash_sale_order(self, integrado, manual, datadocumento, datasistema, number,
     values = {'hash': novohash, 'hash_date': datasistema}
     values['hash_control'] = f"1-{saft_type}M {move.origin or ''}" if manual else "1"
 
-    self.message_post(body=f"[DEBUG HASH SALE] Hash gerado: {novohash}")
+    self.message_post(body=f"[DEBUG HASH STOCK] Hash gerado: {novohash}")
     if _logger:
-        _logger.info(f"[DEBUG HASH SALE] Hash gerado: {novohash}")
+        _logger.info(f"[DEBUG HASH STOCK] Hash gerado: {novohash}")
 
     return values

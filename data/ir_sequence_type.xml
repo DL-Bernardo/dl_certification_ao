@@ -10,7 +10,7 @@
         <record id="seq_sale_order_or" model="ir.sequence">
             <field name="name">Sales Order Or</field>
             <field name="code">sale.order.or</field>
-            <field name="prefix">OR SO/</field>
+            <field name="prefix">OR%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_next">1</field>
             <field name="number_increment">1</field>
@@ -21,7 +21,7 @@
         <record id="sq_sale_order_pf" model="ir.sequence">
             <field name="name">Proforma</field>
             <field name="code">pro.forma</field>
-            <field name="prefix">PP SO/</field>
+            <field name="prefix">PP%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_next">1</field>
             <field name="number_increment">1</field>
@@ -32,7 +32,7 @@
         <record id="seq_sale_order_noe" model="ir.sequence">
             <field name="name">Nota de Encomenda</field>
             <field name="code">nota.encomenda</field>
-            <field name="prefix">NE SO/</field>
+            <field name="prefix">NE%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_next">1</field>
             <field name="number_increment">1</field>
@@ -43,7 +43,7 @@
         <record id="seq_sale_order_cosignation" model="ir.sequence">
             <field name="name">Consignation Invoice</field>
             <field name="code">cosignation</field>
-            <field name="prefix">FC SO/</field>
+            <field name="prefix">FC%(year)s/</field>
             <field name="padding">1</field>
             <field name="number_next">1</field>
             <field name="number_increment">1</field>

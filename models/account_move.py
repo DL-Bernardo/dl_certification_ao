@@ -40,7 +40,6 @@ TYPE2PICKING = {
 
 MAGIC_COLUMNS = ('id', 'create_uid', 'create_date', 'write_uid', 'write_date')
 
-tz_pt = timezone('Europe/Lisbon')
 
 class AccountMove(models.Model):
     _inherit = "account.move"
@@ -143,13 +142,13 @@ class AccountMove(models.Model):
                 if not invoice.partner_id.name and not invoice.partner_id.parent_id:
                     raise UserError(_('O parceiro não possui nome!'))
                 # verificar se o mes não é o proximo
-                if str(invoice.invoice_date) >= (datetime(datetime.now(tz_pt).year, datetime.now(tz_pt).month, 1) +
+                if str(invoice.invoice_date) >= (datetime(datetime.now().year, datetime.now().month, 1) +
                                              relativedelta(months=1)).strftime('%Y-%m-%d'):
                     raise UserError('O mês da fatura tem de ser o mês corrente ou inferior.')
                     # fim validar mes
 
                 # Verificação do ano
-                if invoice.journal_id.allow_date and invoice.invoice_date.year < datetime.now(tz_pt).year:
+                if invoice.journal_id.allow_date and invoice.invoice_date.year < datetime.now().year:
                     raise UserError(_('Não pode validar para anos anteriores ao corrente.'))
 
                 # verifica se a data e menor
@@ -259,14 +258,18 @@ class AccountMove(models.Model):
         self.ensure_one()
 
         # Determinar o tipo SAFT (FT, NC, ND, FR, etc.)
-        saft_type = self.journal_id.saft_inv_type or 'FT'
+        #saft_type = self.journal_id.saft_inv_type or 'FT' (Antigo apresentava incosistencia)
+        if self.move_type == 'out_refund':
+            saft_type = 'NC'
+        else:
+            saft_type = self.journal_id.saft_inv_type or 'FT'
 
         # Domínio: documentos anteriores do mesmo diário e mesma série SAFT
         domain = [
             ('state', '=', 'posted'),
-            ('journal_id', '=', self.journal_id.id),
             ('journal_id.saft_inv_type', '=', saft_type),
-            ('id', '<', self.id),
+            ('journal_id', '=', self.journal_id.id),
+            ('name', '<', self.name),   # comparar pela numeração, não pelo id
             ('hash', '!=', False),
         ]
 
@@ -274,7 +277,7 @@ class AccountMove(models.Model):
         numHash = self.search_count(domain)
 
         # Documento imediatamente anterior nesta série
-        previous_invoice = self.search(domain, order='id desc', limit=1)
+        previous_invoice = self.search(domain, order='name desc', limit=1)
         antigoHash = previous_invoice.hash if previous_invoice else '0'
 
         # Debug opcional (para confirmar que a série está a ser respeitada)

@@ -2,7 +2,9 @@
 from datetime import datetime, date, timedelta
 import odoo.addons.decimal_precision as dp
 from odoo import models, fields, api, _
+from odoo.tools import float_round
 from . import hash_generation
+from . import hash_sale_order
 from dateutil.relativedelta import relativedelta
 from pytz import timezone
 from . import qr_code_generation
@@ -227,26 +229,23 @@ class SaleOrder(models.Model):
                 datadocumento = sale_order.date_order
                 number = sale_order.name
                 totalbruto = sale_order.amount_total
-                # get data de criacao da empresa da base de dados para os files temporarios
-                nemp = str(sale_order.company_id.create_date)
-                nemp = nemp.replace(" ", "").replace(".", "").replace(":", "").replace("-", "")
-                identi = nemp + str(self._uid) + "so"
-                # verificar se é o primeiro documento
-                self._cr.execute("select count(*) from sale_order where hash != '' and company_id=" +
-                                 str(sale_order.company_id.id))
-                numHash = self._cr.fetchone()[0]
-                # Se não for o primeiro vai buscar o hash anterior
-                antigoHash = False
-                if numHash > 0:
-                    self._cr.execute("SELECT so.hash FROM sale_order so, (select max(id) from sale_order " +
-                                     "where hash != '' and company_id=" + str(sale_order.company_id.id) +
-                                     ") mso where so.id = mso.max")
-                    antigoHash = self._cr.fetchone()[0]
 
-                values = hash_generation.hash(
-                    self, False, False, datadocumento, datasistema, number, identi, numHash, antigoHash, totalbruto)
-                self.certificated = True
-                sale_order.write(values)
+                nemp = str(sale_order.company_id.create_date).replace(" ", "").replace(".", "").replace(":", "").replace("-", "")
+                identi = nemp + str(self.env.user.id) + "so" + str(sale_order.id)
+
+                # numHash and antigoHash are now calculated inside hash_sale_order.
+                # We can pass dummy values.
+                numHash = 0
+                antigoHash = ''
+
+                values = hash_sale_order.hash_sale_order(
+                    sale_order, False, False, datadocumento, datasistema, number, identi, numHash, antigoHash, totalbruto)
+
+                sale_order.hash = values.get('hash')
+                sale_order.hash_date = values.get('hash_date')
+                sale_order.hash_control = values.get('hash_control')
+                sale_order.certificated = True
+            sale_order._compute_amount_all() # Recompute totals after all changes
 
     #       Certificação e envio por email das SO
     def action_quotation_send(self):
@@ -321,6 +320,22 @@ class SaleOrderLine(models.Model):
                                   string='Subtotal', readonly=True, store=True)
     price_tax = fields.Float(digits=dp.get_precision('Product Price'), compute='_compute_amount',
                              string='Price with Taxes', readonly=True, store=True)
+
+    @api.depends('product_uom_qty', 'discount', 'price_unit', 'tax_id')
+    def _compute_amount(self):
+        for line in self:
+            price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
+
+            taxes = line.tax_id.compute_all(
+                price,
+                currency=line.order_id.currency_id,
+                quantity=line.product_uom_qty,
+                product=line.product_id,
+                partner=line.order_id.partner_shipping_id
+            )
+
+            line.price_subtotal = float_round(taxes['total_excluded'], precision_digits=2)
+            line.price_tax = float_round(taxes['total_included'] - taxes['total_excluded'], precision_digits=2)
 
     # nao permitir mais do que um imposto nas linhas dos orcamentos
     @api.constrains('tax_id')

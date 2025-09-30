@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, RedirectWarning, ValidationError
 from . import hash_generation
+from . import hash_stock_picking
 from pytz import timezone
 from . import qr_code_generation
 
@@ -555,8 +556,8 @@ class StockPicking(models.Model):
 
                     numHash, antigoHash = self.validar_hash()
 
-                    values = hash_generation.hash(self, False, False, datadocumento, datasistema, self.name, identi,
-                                                  numHash, antigoHash, 0)
+                    values = hash_stock_picking.hash_stock_picking(self, False, False, datadocumento, datasistema, self.name, identi,
+                                                                   numHash, antigoHash, 0)
                     self.write(values)
 
                     # fim hash

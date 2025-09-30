@@ -2,6 +2,7 @@
 import os
 import sys
 import subprocess
+import re
 from pathlib import Path
 from odoo import _
 from odoo.exceptions import UserError
@@ -17,24 +18,55 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
 
     # --- Determinar hash anterior por ordem numérica ---
     prev_hash = ""
-    saft_type = move.journal_id.saft_inv_type or 'FT'
+    # Garante que a série (saft_type) é determinada de forma consistente, tratando as Notas de Crédito (NC)
+    if move.move_type == 'out_refund':
+        saft_type = 'NC'
+    else:
+        saft_type = move.journal_id.saft_inv_type or 'FT'
 
-    prev_move = self.env['account.move'].search([
+    # 1. Construir o domínio de pesquisa base para encontrar candidatos
+    domain = [
         ('journal_id', '=', move.journal_id.id),
         ('company_id', '=', move.company_id.id),
         ('state', '=', 'posted'),
-        ('journal_id.saft_inv_type', '=', saft_type),
         ('id', '!=', move.id),
-        ('name', '<', move.name),  # encadeamento sequencial
-        ('hash', '!=', False),
-        ('hash', '!=', ''),
-    ], order='name desc', limit=1)
+        ('hash', 'not in', [False, '']),
+    ]
+
+    # 2. Adicionar lógica de pesquisa específica para a série
+    # Para Notas de Crédito, a série é definida pelo tipo de movimento.
+    # Para outros, é pelo tipo SAFT do diário, excluindo as NCs.
+    if saft_type == 'NC':
+        domain.append(('move_type', '=', 'out_refund'))
+    else:
+        domain.append(('journal_id.saft_inv_type', '=', saft_type))
+        domain.append(('move_type', '!=', 'out_refund'))
+
+    candidate_moves = self.env['account.move'].search(domain)
+
+    # 2. Função de ordenação natural para tratar números em strings (ex: 'FT10' > 'FT9')
+    def natural_sort_key(m):
+        s = m.name or ''
+        if not s:
+            return []
+        return [int(part) if part.isdigit() else part.lower() for part in re.split(r'(\d+)', s)]
+
+    # 3. Filtrar para encontrar apenas documentos que são estritamente anteriores
+    current_move_key = natural_sort_key(move)
+    predecessors = [m for m in candidate_moves if natural_sort_key(m) < current_move_key]
+
+    # 4. Ordenar os predecessores para encontrar o mais recente
+    prev_move = None
+    if predecessors:
+        predecessors.sort(key=natural_sort_key)
+        prev_move = predecessors[-1]
 
     if prev_move:
         prev_hash = "".join((prev_move.hash or "").split())
         prev_move_id = prev_move.id
         prev_move_name = prev_move.name
     else:
+        # Se não houver predecessor, este é o primeiro documento da série
         prev_hash = ""
         prev_move_id = None
         prev_move_name = None
