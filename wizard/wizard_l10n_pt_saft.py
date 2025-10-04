@@ -1744,6 +1744,24 @@ class WizardSaft(models.Model):
                         enet_total.text = invoice.amount_untaxed and "{:.2f}".format(invoice.amount_untaxed / cambio) or '0.0'
                         egross_total.text = "{:.2f}".format(round(float(invoice.grosstotal()) / cambio, 2))
 
+                        # Add Payment information for paid invoices
+                        reconciled_payments = invoice._get_reconciled_info_JSON_values()
+                        for payment_info in reconciled_payments:
+                            payment_move = self.env['account.move'].browse(payment_info['move_id'])
+                            if payment_move.exists() and payment_move.journal_id:
+                                journal = payment_move.journal_id
+                                mechanism = 'OU'  # Default value
+
+                                if hasattr(journal, 'l10n_pt_payment_mechanism_id') and journal.l10n_pt_payment_mechanism_id:
+                                    mechanism = journal.l10n_pt_payment_mechanism_id.code
+                                elif journal.type == 'cash':
+                                    mechanism = 'CS'
+
+                                epayment = et.SubElement(edocument_totals, u"Payment")
+                                et.SubElement(epayment, u"PaymentMechanism").text = mechanism
+                                et.SubElement(epayment, u"PaymentAmount").text = "{:.6f}".format(payment_info['amount'])
+                                et.SubElement(epayment, u"PaymentDate").text = str(payment_info['date'])
+
                         if invoice.currency_id.name != 'AOA':
                             ecurrency = et.SubElement(edocument_totals, u"Currency")
                             ecurrency_code = et.SubElement(ecurrency, u"CurrencyCode")
