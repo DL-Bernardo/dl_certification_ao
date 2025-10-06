@@ -196,11 +196,17 @@ class WizardSaft(models.Model):
         _logger.info("saft :", ' A exportar o ficheiro xml SAFT ****')
 
         # Namespaces declaration
-        xmlns = "urn:OECD:StandardAuditFile-Tax:AO_01_01"
-        attrib = {'xmlns': xmlns}
+        xsi = "http://www.w3.org/2001/XMLSchema-instance"
+        ns_map = {
+            None: "urn:OECD:StandardAuditFile-Tax:AO_1.01_01",
+            'xsi': xsi
+        }
+        attrib = {
+            '{%s}schemaLocation' % xsi: "urn:OECD:StandardAuditFile-Tax:AO_1.01_01 https://raw.githubusercontent.com/assoft-portugal/SAF-T-AO/master/XSD/SAFTAO1.01_01.xsd"
+        }
 
-        root = et.Element("AuditFile", attrib=attrib)
-        header = et.SubElement(root, 'Header', xmlns=xmlns)
+        root = et.Element("AuditFile", attrib=attrib, nsmap=ns_map)
+        header = et.SubElement(root, 'Header')
 
         # master
         master = self._get_masters()
@@ -270,7 +276,7 @@ class WizardSaft(models.Model):
         for element in header.getchildren():
             pass
 
-        nome_file_2 = self.comp and self.comp.name
+        nome_file_2 = self.comp and self.comp.name.replace('/', '_').replace('\\', '_').replace(' ', '_')
         nome_file_3 = str(self.date_inicio) or ''
         nome_file_4 = ''
         if nome_file_3 != '':
@@ -306,8 +312,7 @@ class WizardSaft(models.Model):
 
     def _get_masters(self):
         _logger.info("saft :", ' A exportar MasterFiles')
-        xmlns = "urn:OECD:StandardAuditFile-Tax:AO_01_01"
-        master = et.Element('MasterFiles', xmlns=xmlns)
+        master = et.Element('MasterFiles')
         # 2.1 GeneralLedger
         # obtem lista de contas com movimentos, com saldos 99de abertura
         # precisa obter contas-mãe para cada cta de movimento
@@ -716,8 +721,7 @@ class WizardSaft(models.Model):
     def _get_entries(self):
         _logger.info("saft :", ' A exportar movimentos da contabilidade')
         # 3. GeneralLedgerEntries
-        xmlns = "urn:OECD:StandardAuditFile-Tax:AO_01_01"
-        entries = et.Element('GeneralLedgerEntries', xmlns=xmlns)
+        entries = et.Element('GeneralLedgerEntries')
         # 3.1 NumberOfEntries
         number_of_entries = et.SubElement(entries, 'NumberOfEntries')
         num_entries = 0
@@ -920,7 +924,7 @@ class WizardSaft(models.Model):
             ('date', '<=', self.date_fim)])
         # ('payment_move_line', '!=', self.env['account.payment.move.line']
 
-        if len(pagamentoscliente) == '0':
+        if len(pagamentoscliente) == 0:
             return None
 
         # 4.4
@@ -980,7 +984,14 @@ class WizardSaft(models.Model):
             # 4.4.4.10
             payment_method = et.SubElement(payment, 'PaymentMethod')
             # 4.4.4.10.1
-            et.SubElement(payment_method, 'PaymentMechanism').text = 'OU'
+            journal = payments.journal_id
+            mechanism = 'OU'  # Default value
+
+            if hasattr(journal, 'l10n_pt_payment_mechanism_id') and journal.l10n_pt_payment_mechanism_id:
+                mechanism = journal.l10n_pt_payment_mechanism_id.code
+            elif journal.type == 'cash':
+                mechanism = 'CS'
+            et.SubElement(payment_method, 'PaymentMechanism').text = mechanism
             # 4.4.4.10.2
             et.SubElement(payment_method, 'PaymentAmount').text = str(payments.amount)
             # 4.4.4.10.3
@@ -1784,7 +1795,7 @@ class WizardSaft(models.Model):
         sales = self._sale_orders(start_date, final_date, empresa, esource_documents)
         if sales:
             esource_documents.append(sales)
-        if self.tipo in ('I') or (self.comp.cash_vat_scheme_indicator and self.tipo != 'C'):
+        if self.tipo in ('I', 'F') or (self.comp.cash_vat_scheme_indicator and self.tipo != 'C'):
             docs_p = self._write_payments()
             if docs_p is not None:
                 esource_documents.append(docs_p)
