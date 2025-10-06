@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="report_invoice_document_watermark" inherit_id="account.report_invoice_document">
+            <xpath expr="//div[hasclass('page')]" position="inside">
+                <div t-if="o.state == 'cancel'"
+                     style="position:absolute; top:400px; left:50px; z-index:1000; -webkit-transform: rotate(-45deg);-moz-transform: rotate(-45deg);-ms-transform: rotate(-45deg);-o-transform: rotate(-45deg);transform: rotate(-45deg);">
+                    <p style="font-size:150px; color:rgba(255, 0, 0, 0.2);">
+                        ANULADO
+                    </p>
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>

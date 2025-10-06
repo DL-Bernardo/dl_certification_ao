@@ -27,6 +27,7 @@
         'data/sequence.xml',
         'data/journal_data.xml',
         'views/account_journal_view.xml',
+        'views/report_invoice_document_view.xml',
         'views/account_move_form_view.xml',
         'views/account_move_factura_recibo_view.xml',
         'views/account_view.xml',
