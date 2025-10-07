@@ -20,4 +20,4 @@ class WizardCancelarFatura(models.Model):
         fatura.reason_cancel = self.descricao_cancel
         if not self.descricao_cancel:
             raise ValidationError(_('O campo motivo de cancelamento é obrigatório'))
-        fatura.button_cancel()
+        fatura.action_cancel()

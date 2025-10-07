@@ -498,7 +498,7 @@ class AccountMove(models.Model):
             if not invoice.reason_cancel and invoice.move_type not in ['in_invoice', 'in_refund']:
                 raise ValidationError(_('Incompleto\n'
                       'Introduza a razão do cancelamento no campo "Descrição" na aba "Outras Informações".'))
-        return super(AccountMove, self).action_cancel()
+        return self.write({'state': 'cancel'})
 
     # diarios por defeito na fatura
     @api.model
