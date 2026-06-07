@@ -1,19 +1,39 @@
 # -*- coding: utf-8 -*-
+# Formerly: opc_certification_ao_v17
 {
-    'name': "Angola - Digitalub Certification - Officemini",
-    'summary': """Digitalub Certification""",
+    'name': "Angola - DL Certification - Digitalub",
+    'summary': """Módulo de Certificação de Faturamento e Localização Fiscal para Angola (AGT / SAF-T)""",
     'description': """
-        Módulo para a Certificação.
-        Angola - Saft
-        Geração de Hash
+Core de Certificação Fiscal da DIGITALUB para o mercado de Angola.
+==================================================================
+* Validação e Geração de Hash de documentos fiscais (Faturas, Faturas-Recibo, Notas de Crédito).
+* Configuração e extração do arquivo magnético SAF-T AO (Standard Audit File for Tax).
+* Integração e suporte a tipos de produtos SAF-T e tabelas de taxonomia locais.
+* Compatibilidade nativa com fluxos de Vendas, Faturamento, Stock e Guias de Transporte.
     """,
-    'author': "DIGITALUB",
+    'author': "DIGITALUB ANGOLA, LDA",
     'website': "https://www.digitalub.ao",
-    'category': 'Certificacao',
+    'category': 'Accounting/Localizations',
     'version': '17.0.1.0',
-    'depends': ['account', 'sale', 'stock', 'sale_stock', 'l10n_pt', 'web',
-                'base_vat', 'delivery', 'product', 'base'],
-    # always loaded
+    'license': 'OPL-1',  # Licença comercial proprietária para venda na Odoo Store
+    'price': 799.00,     # Preço sugerido em Euros/Dólares na plataforma
+    'currency': 'EUR',   # Moeda padrão da loja de aplicativos do Odoo
+    
+    # Dependências de módulos do sistema e localização base
+    'depends': [
+        'account', 
+        'sale', 
+        'stock', 
+        'sale_stock', 
+        'l10n_ao_account', 
+        'web',
+        'base_vat', 
+        'delivery', 
+        'product', 
+        'base'
+    ],
+    
+    # Arquivos XML/CSV carregados na inicialização do módulo
     'data': [
         'security/ir.model.access.csv',
         'security/account_security.xml',
@@ -55,35 +75,14 @@
         'views/menus.xml',
         'wizard/cancelar_sale_order_view.xml',
     ],
-    'pre_init_hook': '_pre_init_hook',
-    'models': [
-        'models/account_account.py',
-        'models/account_config_settings.py',
-        'models/account_journal.py',
-        'models/account_move.py',
-        'models/account_move_line.py',
-        'models/account_payment.py',
-        'models/account_tax.py',
-        'models/hash_generation.py',
-        'models/hist_saft.py',
-        'models/pedidos_at.py',
-        'models/product_product.py',
-        'models/qr_code_generation.py',
-        'models/res.py',
-        'models/sale_order.py',
-        'models/stock.py',
-        'models/taxonomia.py',
-        'models/tipo_produto_saft.py',
-        'wizard/account_move_reversal.py',
-        'wizard/alert_atcud.py',
-        'wizard/alterar_guia.py',
-        'wizard/call_at_wiz.py',
-        'wizard/cancelar_fatura.py',
-        'wizard/cancelar_sale_order.py',
-        'wizard/exportar_stock.py',
-        'wizard/import_saft.py',
-        'wizard/manual_code.py',
-        'wizard/recall_at.py',
-        'wizard/wizard_l10n_pt_saft.py',
+    
+    # Mapeamento de mídia para vitrine do app
+    'images': [
+        'static/description/banner.png'
     ],
+    
+    'pre_init_hook': '_pre_init_hook',
+    'installable': True,
+    'application': True,
+    'auto_install': False,
 }

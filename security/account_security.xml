@@ -12,7 +12,7 @@
         <!-- Regra de acesso ao histórico SAFT -->
         <record id="model_hist_saft_rulee" model="ir.rule">
             <field name="name">Historico Saft Regra</field>
-            <field name="model_id" ref="opc_certification_ao_v17.model_hist_saft"/>
+            <field name="model_id" ref="dl_certification_ao.model_hist_saft"/>
             <field name="global" eval="True"/>
             <field name="domain_force">['|',
                 ('empresa','=',False),

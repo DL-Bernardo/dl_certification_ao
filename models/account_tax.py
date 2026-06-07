@@ -26,31 +26,32 @@ class AccountTax(models.Model):
                                    default="M01: Artigo 16.º n.º 6 do CIVA", copy=False)
     
     def configure_account_tax_group_and_saft_code(self):
+        # Formerly referenced 'opc_certification_ao_v17'
         for tax in self:
             if str(tax.amount)[:2] == '23':
                 tax.saft_tax_code = 'NOR'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.tax_group_iva_23')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.tax_group_iva_23')
             elif str(tax.amount)[:2] == '14':
                 tax.saft_tax_code = 'NOR'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.tax_group_iva_14')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.tax_group_iva_14')
             elif str(tax.amount)[:2] == '13':
                 tax.saft_tax_code = 'INT'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.tax_group_iva_13')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.tax_group_iva_13')
             elif str(tax.amount)[:1] == '6':
                 tax.saft_tax_code = 'RED'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.tax_group_iva_6')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.tax_group_iva_6')
             elif str(tax.amount)[:1] == '5':
                 tax.saft_tax_code = 'RED'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.tax_group_iva_5')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.tax_group_iva_5')
             elif str(tax.amount)[:1] == '2':
                 tax.saft_tax_code = 'RED'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.tax_group_iva_2')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.tax_group_iva_2')
             elif str(tax.amount)[:1] == '0':
                 tax.saft_tax_code = 'ISE'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.ao_tax_group_isento')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.ao_tax_group_isento')
             else:
                 tax.saft_tax_code = 'OUT'
-                tax.tax_group_id = self.env.ref('opc_certification_ao_v17.tax_group_retencao')
+                tax.tax_group_id = self.env.ref('dl_certification_ao.tax_group_retencao')
 
     # validacoes ao alterar o imposto
     def _validar_imposto_utilizado(self, aviso):

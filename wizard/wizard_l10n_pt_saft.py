@@ -93,8 +93,9 @@ class WizardSaft(models.Model):
                     for user in self.env['res.users'].sudo().search([]):
                         if user.has_group('account.group_account_manager'):
                             # enviar e-mail para os manager de contabilidade
+                            # Formerly 'opc_certification_ao'
                             notification_template = self.env['ir.model.data'].sudo().check_object_reference (
-                                'opc_certification_ao', 'saft_aviso25')
+                                'dl_certification_ao', 'saft_aviso25')
 
                             notification_template = notification_template and self.env['mail.template'].browse(
                                 notification_template[1])

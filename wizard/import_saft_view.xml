@@ -51,7 +51,7 @@
 
         <menuitem action="action_wizard_import_saft"
                   id="menu_wizard_import_saft"
-                  parent="opc_certification_ao_v17.menu_wizard_saft_pai"
+                  parent="dl_certification_ao.menu_wizard_saft_pai"
                   sequence="2"/>
 
     </data>

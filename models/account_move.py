@@ -173,24 +173,26 @@ class AccountMove(models.Model):
     # validacoes nas linhas da fatura
     def verificar_linhas_fatura(self, type_tax_use):
         for invoice in self:
-            for invoice_line in invoice.invoice_line_ids:
-                if not invoice_line.display_type:
-                    if not invoice_line.product_id:
-                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de ter produto.')
-                    if invoice_line.price_unit <= 0:
+            article_lines = invoice.invoice_line_ids.filtered(lambda l: not l.display_type)
+            if not article_lines:
+                raise ValidationError(_('Incompleto !\nA fatura tem de ter pelo menos uma linha de artigo.'))
+            for invoice_line in article_lines:
+                if not invoice_line.product_id:
+                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de ter produto.')
+                if invoice_line.price_unit <= 0:
+                    raise ValidationError(
+                        'Incompleto !\n Todas as linhas da fatura tem de ter preço unitário maior que zero.')
+                if invoice_line.product_uom_id.id is False:
+                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir unidade de medida.')
+                if not invoice_line.tax_ids:
+                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir imposto.')
+                if invoice_line.quantity <= 0:
+                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir quantidade.')
+                for tax in invoice_line.tax_ids:
+                    if tax.type_tax_use != type_tax_use:
                         raise ValidationError(
-                            'Incompleto !\n Todas as linhas da fatura tem de ter preço unitário maior que zero.')
-                    if invoice_line.product_uom_id.id is False:
-                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir unidade de medida.')
-                    if not invoice_line.tax_ids:
-                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir imposto.')
-                    if invoice_line.quantity <= 0:
-                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir quantidade.')
-                    for tax in invoice_line.tax_ids:
-                        if tax.type_tax_use != type_tax_use:
-                            raise ValidationError(
-                                'Erro !\n O imposto em documentos de Clientes tem que ser do tipo "Venda" '
-                                'e em documentos de Fornecedores tem que ser do tipo "Compra".')
+                            'Erro !\n O imposto em documentos de Clientes tem que ser do tipo "Venda" '
+                            'e em documentos de Fornecedores tem que ser do tipo "Compra".')
 
     # validacoes diarios da fatura
     def verificar_diarios(self):
@@ -345,7 +347,8 @@ class AccountMove(models.Model):
                                                                                             invoice.invoice_date)
                     if not codigo_validacao_serie:
                         if self.env.user.has_group('account.group_account_manager'):
-                            action = self.env.ref('opc_certification_ao.action_ir_sequence_atcud')
+                            # Formerly 'opc_certification_ao.action_ir_sequence_atcud'
+                            action = self.env.ref('dl_certification_ao.action_ir_sequence_atcud')
                             wizard_alert_atcud.treat_sequences()
                             msg = _(
                                 'Falta definir o codigo de validação de sequência AT. '
@@ -495,6 +498,9 @@ class AccountMove(models.Model):
     # razao de cancelamento obrigatoria ao cancelar fatura ou nc de venda
     def action_cancel(self):
         for invoice in self:
+            # Evitar cancelar documento de cliente se este não tiver linhas de artigo (para evitar exportar documentos vazios inválidos no SAF-T)
+            if invoice.move_type in ('out_invoice', 'out_refund') and not invoice.invoice_line_ids.filtered(lambda l: not l.display_type):
+                raise ValidationError(_('Restrição !\nNão é permitido cancelar um documento de cliente que não possui linhas de artigos.'))
             if not invoice.reason_cancel and invoice.move_type not in ['in_invoice', 'in_refund']:
                 raise ValidationError(_('Incompleto\n'
                       'Introduza a razão do cancelamento no campo "Descrição" na aba "Outras Informações".'))

@@ -12,7 +12,8 @@ def _pre_init_hook(env):
     data file can be created correctly on a new installation attempt.
     """
     # The env passed to a pre-init hook is already sudoed.
-    module_name = 'opc_certification_ao_v17'
+    # Formerly 'opc_certification_ao_v17'
+    module_name = 'dl_certification_ao'
 
     journal_xml_ids = [
         'opc_journal_ft',

@@ -88,7 +88,7 @@
         <menuitem
                 id="hist_saft_tree_menu_opc"
                 action="hist_saft_action"
-                parent="opc_certification_ao_v17.menu_wizard_saft_pai"
+                parent="dl_certification_ao.menu_wizard_saft_pai"
                 sequence="3"/>
 
     </data>

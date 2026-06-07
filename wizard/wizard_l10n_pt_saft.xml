@@ -44,7 +44,7 @@
 
         <menuitem action="action_wizard_saft"
                   id="menu_wizard_saft"
-                  parent="opc_certification_ao_v17.menu_wizard_saft_pai"
+                  parent="dl_certification_ao.menu_wizard_saft_pai"
                   sequence="1"/>
 
     </data>

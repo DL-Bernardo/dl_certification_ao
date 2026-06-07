@@ -148,11 +148,13 @@ class AlertAtcud(models.TransientModel):
     
     def open_sequences(self):
         self.treat_sequences()
-        return self.env.ref('opc_certification_ao_v17.action_ir_sequence_atcud').read()[0]
+        # Formerly referenced 'opc_certification_ao_v17'
+        return self.env.ref('dl_certification_ao.action_ir_sequence_atcud').read()[0]
 
     
     def call_wizard_alert_atcud(self, sequence_id, type_doc, hide):
-        action = self.env.ref('opc_certification_ao_v17.action_wizard_alert_atcud').read()[0]
+        # Formerly referenced 'opc_certification_ao_v17'
+        action = self.env.ref('dl_certification_ao.action_wizard_alert_atcud').read()[0]
         action['context'] = {'default_sequence_id': sequence_id.id, 'default_tipo_documento': type_doc, 'default_hide': hide}
         return action
 

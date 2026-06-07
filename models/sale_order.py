@@ -175,7 +175,8 @@ class SaleOrder(models.Model):
             codigo_validacao_serie = wizard_alert_atcud._get_codigo_validacao_serie(sequence_id_atcud, self.date_order)
             if not codigo_validacao_serie:
                 if self.env.user.has_group('account.group_account_manager'):
-                    action = self.env.ref('opc_certification_ao.action_ir_sequence_atcud')
+                    # Formerly 'opc_certification_ao.action_ir_sequence_atcud'
+                    action = self.env.ref('dl_certification_ao.action_ir_sequence_atcud')
                     wizard_alert_atcud.treat_sequences()
                     msg = _(
                         'Falta definir o codigo de validação de sequência AT. '

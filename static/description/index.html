@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angola - DL Certification Odoo v17</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+            --dark-bg: #0B0F19;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #FFFFFF;
+            --text-muted: #94A3B8;
+            --accent-color: #00F2FE;
+            --success-color: #10B981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: radial-gradient(circle at top, rgba(67, 100, 247, 0.15) 0%, transparent 60%);
+            border-bottom: 1px solid var(--card-border);
+            position: relative;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--card-border);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin: 0 0 20px 0;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 40px auto;
+            font-weight: 300;
+        }
+
+        .hero-btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 16px 36px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(67, 100, 247, 0.4);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(67, 100, 247, 0.6);
+        }
+
+        /* Features Section */
+        .section-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 80px 0 40px 0;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 4px;
+            background: var(--primary-gradient);
+            margin: 15px auto 0 auto;
+            border-radius: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(67, 100, 247, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .card-icon {
+            font-size: 36px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            color: #FFFFFF;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0;
+            font-weight: 300;
+        }
+
+        /* Details Section */
+        .info-block {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .info-content {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .info-content h2 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 0;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .info-content ul {
+            padding-left: 20px;
+            color: var(--text-muted);
+        }
+
+        .info-content li {
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .info-content strong {
+            color: #FFFFFF;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 60px 20px;
+            margin-top: 80px;
+            border-top: 1px solid var(--card-border);
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 300;
+        }
+
+        .footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <div class="container">
+            <div class="badge-container">
+                <div class="badge">Odoo v17</div>
+                <div class="badge">Homologado AGT</div>
+                <div class="badge">SAF-T AO</div>
+                <div class="badge">Digitalub</div>
+            </div>
+            <h1>Angola - Certificação Fiscal</h1>
+            <p>O módulo definitivo para garantir que o seu negócio em Angola cumpre com todas as obrigações fiscais da Administração Geral Tributária (AGT) no Odoo v17.</p>
+            <a href="mailto:suporte@digitalub.ao" class="hero-btn">Solicitar Suporte</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="section-title">Principais Recursos</h2>
+        
+        <div class="grid">
+            <div class="card">
+                <span class="card-icon">🔒</span>
+                <h3>Assinatura de Documentos (Hash)</h3>
+                <p>Geração automática de assinaturas criptográficas (Hash SHA1) nos documentos de faturação, garantindo a inalterabilidade e integridade legal das faturas perante a AGT.</p>
+            </div>
+            
+            <div class="card">
+                <span class="card-icon">📄</span>
+                <h3>SAF-T (AO) Completo</h3>
+                <p>Exportação nativa do ficheiro XML SAF-T AO (Faturação e Inventário/Stock) perfeitamente validado pelas especificações legais mais recentes.</p>
+            </div>
+
+            <div class="card">
+                <span class="card-icon">📱</span>
+                <h3>Código QR Obrigatório</h3>
+                <p>Inclusão dinâmica do código QR nos PDFs das faturas e recibos de venda, em conformidade com as diretivas de auditoria rápida.</p>
+            </div>
+
+            <div class="card">
+                <span class="card-icon">⚙️</span>
+                <h3>Gestão de Séries e ATCUD</h3>
+                <p>Mecanismos robustos para registar, associar e validar as séries de faturação e códigos ATCUD com avisos de controlo inteligentes no workflow.</p>
+            </div>
+
+            <div class="card">
+                <span class="card-icon">💼</span>
+                <h3>Diários e Fluxos Certificados</h3>
+                <p>Configuração automática de diários específicos (FT, FR, NC) e sequências automáticas protegidas contra falhas de numeração.</p>
+            </div>
+
+            <div class="card">
+                <span class="card-icon">📥</span>
+                <h3>Importação SAF-T</h3>
+                <p>Ferramenta auxiliar para importação de SAF-T externos facilitando a reconciliação e carregamento histórico de dados fiscais.</p>
+            </div>
+        </div>
+
+        <div class="info-block">
+            <div class="info-content">
+                <h2>Conformidade Fiscal Angolana Facilitada</h2>
+                <p>A DIGITALUB desenvolveu esta solução com foco em segurança, integridade e facilidade de utilização. Com o módulo <strong>dl_certification_ao</strong>, o Odoo adapta-se automaticamente à legislação de Angola.</p>
+                <ul>
+                    <li><strong>Integração com Contabilidade:</strong> Mapeamento de impostos (IVA e Imposto do Selo) de forma totalmente automatizada.</li>
+                    <li><strong>Taxonomia de Contas:</strong> Categoria taxonómica integrada para assegurar consistência do plano de contas no ficheiro SAF-T.</li>
+                    <li><strong>Tipologia de Produtos SAFT:</strong> Classificação rápida de produtos (Mercadorias, Matérias-Primas, etc.) para correta declaração.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Desenvolvido por <strong>DIGITALUB ANGOLA</strong>. Todos os direitos reservados.</p>
+            <p>Visite-nos em: <a href="https://www.digitalub.ao" target="_blank">www.digitalub.ao</a> | Contacto: <a href="mailto:suporte@digitalub.ao">suporte@digitalub.ao</a></p>
+        </div>
+    </div>
+
+</body>
+</html>
