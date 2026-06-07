@@ -1,304 +1,125 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angola - DL Certification Odoo v17</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
-            --dark-bg: #0B0F19;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --text-main: #FFFFFF;
-            --text-muted: #94A3B8;
-            --accent-color: #00F2FE;
-            --success-color: #10B981;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        /* Hero Section */
-        .hero {
-            text-align: center;
-            padding: 80px 20px;
-            background: radial-gradient(circle at top, rgba(67, 100, 247, 0.15) 0%, transparent 60%);
-            border-bottom: 1px solid var(--card-border);
-            position: relative;
-        }
-
-        .badge-container {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-        }
-
-        .badge {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid var(--card-border);
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .hero h1 {
-            font-size: 48px;
-            font-weight: 800;
-            margin: 0 0 20px 0;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
-        }
-
-        .hero p {
-            font-size: 18px;
-            color: var(--text-muted);
-            max-width: 700px;
-            margin: 0 auto 40px auto;
-            font-weight: 300;
-        }
-
-        .hero-btn {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 16px 36px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(67, 100, 247, 0.4);
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .hero-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(67, 100, 247, 0.6);
-        }
-
-        /* Features Section */
-        .section-title {
-            text-align: center;
-            font-size: 32px;
-            font-weight: 700;
-            margin: 80px 0 40px 0;
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 50px;
-            height: 4px;
-            background: var(--primary-gradient);
-            margin: 15px auto 0 auto;
-            border-radius: 2px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: 60px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 30px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(67, 100, 247, 0.4);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .card-icon {
-            font-size: 36px;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-
-        .card h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0 0 12px 0;
-            color: #FFFFFF;
-        }
-
-        .card p {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin: 0;
-            font-weight: 300;
-        }
-
-        /* Details Section */
-        .info-block {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 40px;
-            margin-top: 40px;
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            flex-wrap: wrap;
-        }
-
-        .info-content {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .info-content h2 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-top: 0;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .info-content ul {
-            padding-left: 20px;
-            color: var(--text-muted);
-        }
-
-        .info-content li {
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
-
-        .info-content strong {
-            color: #FFFFFF;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 60px 20px;
-            margin-top: 80px;
-            border-top: 1px solid var(--card-border);
-            color: var(--text-muted);
-            font-size: 14px;
-            font-weight: 300;
-        }
-
-        .footer a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="hero">
-        <div class="container">
-            <div class="badge-container">
-                <div class="badge">Odoo v17</div>
-                <div class="badge">Homologado AGT</div>
-                <div class="badge">SAF-T AO</div>
-                <div class="badge">Digitalub</div>
+<section class="oe_container" style="font-family: 'Montserrat', 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
+    
+    <!-- Cabeçalho Principal (Badges e Título) -->
+    <div class="row mt-4 mb-3">
+        <div class="col-12 text-center">
+            <div class="d-flex flex-wrap justify-content-center" style="gap: 8px; margin-bottom: 15px;">
+                <span class="badge badge-pill badge-light" style="padding: 6px 14px; font-size: 12px; border: 1px solid #e2e8f0; color: #0052D4; font-weight: 600;">ODOO V17</span>
+                <span class="badge badge-pill badge-light" style="padding: 6px 14px; font-size: 12px; border: 1px solid #e2e8f0; color: #00a896; font-weight: 600;">HOMOLOGADO AGT</span>
+                <span class="badge badge-pill badge-light" style="padding: 6px 14px; font-size: 12px; border: 1px solid #e2e8f0; color: #00a896; font-weight: 600;">SAF-T AO</span>
+                <span class="badge badge-pill badge-dark" style="padding: 6px 14px; font-size: 12px; font-weight: 600; background-color: #0d2c54;">DIGITALUB</span>
             </div>
-            <h1>Angola - Certificação Fiscal</h1>
-            <p>O módulo definitivo para garantir que o seu negócio em Angola cumpre com todas as obrigações fiscais da Administração Geral Tributária (AGT) no Odoo v17.</p>
-            <a href="mailto:suporte@digitalub.ao" class="hero-btn">Solicitar Suporte</a>
+            <h1 style="color: #0d2c54; font-weight: 700; font-size: 2.3rem; margin-bottom: 15px;">Angola - Certificação Fiscal</h1>
+            <p style="color: #4a5568; font-size: 1.1rem; max-width: 800px; margin: 0 auto; line-height: 1.6; font-weight: 400;">
+                O módulo definitivo para garantir que o seu negócio em Angola cumpre integralmente com todas as obrigações fiscais da Administração Geral Tributária (AGT) no Odoo v17.
+            </p>
         </div>
     </div>
 
-    <div class="container">
-        <h2 class="section-title">Principais Recursos</h2>
-        
-        <div class="grid">
-            <div class="card">
-                <span class="card-icon">🔒</span>
-                <h3>Assinatura de Documentos (Hash)</h3>
-                <p>Geração automática de assinaturas criptográficas (Hash SHA1) nos documentos de faturação, garantindo a inalterabilidade e integridade legal das faturas perante a AGT.</p>
-            </div>
-            
-            <div class="card">
-                <span class="card-icon">📄</span>
-                <h3>SAF-T (AO) Completo</h3>
-                <p>Exportação nativa do ficheiro XML SAF-T AO (Faturação e Inventário/Stock) perfeitamente validado pelas especificações legais mais recentes.</p>
-            </div>
+    <!-- Botão de Ação Rápida -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <a href="mailto:suporte@digitalub.ao" class="btn btn-primary" style="background: linear-gradient(135deg, #0052D4, #4364F7); border: none; padding: 12px 35px; font-size: 15px; font-weight: 600; border-radius: 6px; box-shadow: 0 4px 15px rgba(67, 100, 247, 0.3); color: #ffffff;">
+                <i class="fa fa-envelope mr-2"></i> Solicitar Suporte Técnico
+            </a>
+        </div>
+    </div>
 
-            <div class="card">
-                <span class="card-icon">📱</span>
-                <h3>Código QR Obrigatório</h3>
-                <p>Inclusão dinâmica do código QR nos PDFs das faturas e recibos de venda, em conformidade com as diretivas de auditoria rápida.</p>
-            </div>
+    <hr style="border-top: 1px solid #edf2f7; margin: 30px 0;">
 
-            <div class="card">
-                <span class="card-icon">⚙️</span>
-                <h3>Gestão de Séries e ATCUD</h3>
-                <p>Mecanismos robustos para registar, associar e validar as séries de faturação e códigos ATCUD com avisos de controlo inteligentes no workflow.</p>
-            </div>
+    <!-- Título da Seção de Recursos -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 style="color: #0d2c54; font-weight: 600; font-size: 1.8rem; margin-bottom: 10px;">Principais Recursos do Módulo</h2>
+            <div style="width: 50px; height: 3px; background: #0052D4; margin: 0 auto; border-radius: 2px;"></div>
+        </div>
+    </div>
 
-            <div class="card">
-                <span class="card-icon">💼</span>
-                <h3>Diários e Fluxos Certificados</h3>
-                <p>Configuração automática de diários específicos (FT, FR, NC) e sequências automáticas protegidas contra falhas de numeração.</p>
-            </div>
-
-            <div class="card">
-                <span class="card-icon">📥</span>
-                <h3>Importação SAF-T</h3>
-                <p>Ferramenta auxiliar para importação de SAF-T externos facilitando a reconciliação e carregamento histórico de dados fiscais.</p>
+    <!-- Grelha de Recursos usando Grid Nativa do Bootstrap 4 -->
+    <div class="row">
+        <!-- Card 1 -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 p-4" style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 28px; margin-bottom: 12px;">🔒</div>
+                <h4 style="color: #0d2c54; font-weight: 600; font-size: 1.15rem; margin-bottom: 10px;">Assinatura de Documentos (Hash)</h4>
+                <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 0;">Geração automática de assinaturas criptográficas (Hash SHA1) nos documentos de faturação, garantindo a integridade legal perante a AGT.</p>
             </div>
         </div>
 
-        <div class="info-block">
-            <div class="info-content">
-                <h2>Conformidade Fiscal Angolana Facilitada</h2>
-                <p>A DIGITALUB desenvolveu esta solução com foco em segurança, integridade e facilidade de utilização. Com o módulo <strong>dl_certification_ao</strong>, o Odoo adapta-se automaticamente à legislação de Angola.</p>
-                <ul>
-                    <li><strong>Integração com Contabilidade:</strong> Mapeamento de impostos (IVA e Imposto do Selo) de forma totalmente automatizada.</li>
-                    <li><strong>Taxonomia de Contas:</strong> Categoria taxonómica integrada para assegurar consistência do plano de contas no ficheiro SAF-T.</li>
-                    <li><strong>Tipologia de Produtos SAFT:</strong> Classificação rápida de produtos (Mercadorias, Matérias-Primas, etc.) para correta declaração.</li>
+        <!-- Card 2 -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 p-4" style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 28px; margin-bottom: 12px;">📄</div>
+                <h4 style="color: #0d2c54; font-weight: 600; font-size: 1.15rem; margin-bottom: 10px;">SAF-T (AO) Completo</h4>
+                <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 0;">Exportação nativa do ficheiro XML SAF-T AO (Faturação e Inventário) validado rigorosamente com as especificações da lei.</p>
+            </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 p-4" style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 28px; margin-bottom: 12px;">📱</div>
+                <h4 style="color: #0d2c54; font-weight: 600; font-size: 1.15rem; margin-bottom: 10px;">Código QR Obrigatório</h4>
+                <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 0;">Inclusão dinâmica do código QR regulamentar nos PDFs das faturas e recibos de venda para processos de auditoria rápida.</p>
+            </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 p-4" style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 28px; margin-bottom: 12px;">⚙️</div>
+                <h4 style="color: #0d2c54; font-weight: 600; font-size: 1.15rem; margin-bottom: 10px;">Gestão de Séries e ATCUD</h4>
+                <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 0;">Mecanismos robustos para associar e validar as séries de faturação e códigos ATCUD com alertas de controle no workflow.</p>
+            </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 p-4" style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 28px; margin-bottom: 12px;">💼</div>
+                <h4 style="color: #0d2c54; font-weight: 600; font-size: 1.15rem; margin-bottom: 10px;">Diários e Fluxos Certificados</h4>
+                <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 0;">Configuração automatizada de diários específicos (FT, FR, NC) com sequências numéricas nativas protegidas contra saltos.</p>
+            </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 p-4" style="border: 1px solid #e2e8f0; border-radius: 12px; background-color: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 28px; margin-bottom: 12px;">📥</div>
+                <h4 style="color: #0d2c54; font-weight: 600; font-size: 1.15rem; margin-bottom: 10px;">Importação SAF-T</h4>
+                <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 0;">Ferramenta inteligente de importação de SAF-T externos para agilizar a reconciliação e migração de históricos fiscais.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloco Informativo de Destaque -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="p-4" style="background-color: #f1f5f9; border-left: 4px solid #0052D4; border-radius: 4px 12px 12px 4px;">
+                <h3 style="color: #0d2c54; font-weight: 600; font-size: 1.4rem; margin-bottom: 12px;">Adaptação Fiscal Facilitada</h3>
+                <p style="color: #4a5568; font-size: 15px; line-height: 1.6; margin-bottom: 15px;">
+                    Desenvolvido com foco absoluto em segurança de dados e integridade legal. Com o módulo <strong>dl_certification_ao</strong>, o ambiente Odoo local adapta-se de forma transparente às exigências da República de Angola.
+                </p>
+                <ul style="color: #4a5568; font-size: 14px; padding-left: 20px;">
+                    <li style="margin-bottom: 6px;"><strong>Integração Contabilística:</strong> Mapeamento inteligente de taxas de IVA e regras para o Imposto do Selo.</li>
+                    <li style="margin-bottom: 6px;"><strong>Taxonomia de Contas:</strong> Estrutura de categorias integrada para garantir a conformidade no ficheiro SAF-T.</li>
+                    <li style="margin-bottom: 0;"><strong>Tipologia de Produtos:</strong> Classificação ágil de artigos para declaração alfandegária e fiscal correta.</li>
                 </ul>
             </div>
         </div>
+    </div>
 
-        <div class="footer">
-            <p>Desenvolvido por <strong>DIGITALUB ANGOLA</strong>. Todos os direitos reservados.</p>
-            <p>Visite-nos em: <a href="https://www.digitalub.ao" target="_blank">www.digitalub.ao</a> | Contacto: <a href="mailto:suporte@digitalub.ao">suporte@digitalub.ao</a></p>
+    <!-- Rodapé Institucional -->
+    <div class="row mt-5 mb-4">
+        <div class="col-12 text-center p-4" style="background-color: #0d2c54; border-radius: 12px; color: #ffffff;">
+            <h4 style="font-weight: 600; font-size: 1.3rem; margin-bottom: 5px;">Desenvolvido por DIGITALUB ANGOLA</h4>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 15px;">Líderes em soluções robustas de localização e engenharia de software para o mercado nacional.</p>
+            <p style="font-size: 14px; margin-bottom: 0; color: #94a3b8;">
+                Visite o nosso portal: <a href="https://www.digitalub.ao" target="_blank" style="color: #00F2FE; font-weight: 500; text-decoration: none;">www.digitalub.ao</a> 
+                <span class="mx-2">|</span> 
+                Contacto Directo: <a href="mailto:suporte@digitalub.ao" style="color: #00F2FE; font-weight: 500; text-decoration: none;">suporte@digitalub.ao</a>
+            </p>
         </div>
     </div>
 
-</body>
-</html>
+</section>
