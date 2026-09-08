@@ -1165,12 +1165,12 @@ class WizardSaft(models.Model):
                 # 4.2
                 movement_of_goods = et.Element('MovementOfGoods')
 
-                # 4.2.1 Bernardo Editou 2025.05.27
+                # 4.2.1 Digitalub Team 2025.05.27
                 #et.SubElement(movement_of_goods, 'NumberOfMovementLines').text = str(len(stock_picking))
                 total_lines = sum(len(picking.move_ids) for picking in stock_picking)
                 et.SubElement(movement_of_goods, 'NumberOfMovementLines').text = str(total_lines)
 
-                # 4.2.2 Bernardo Editou 2025.05.27
+                # 4.2.2 Digitalub Team 2025.05.27
                 #self.env.cr.execute("""
                         #SELECT cast(coalesce(sum(sm.product_qty),0) as char)
                         #FROM stock_move sm
@@ -1183,7 +1183,7 @@ class WizardSaft(models.Model):
             for picking in stock_picking:
                 # 4.2.3
                 stock_movement = et.SubElement(movement_of_goods, 'StockMovement')
-                # 4.2.3.1 Bernardo Editou 2025.05.22
+                # 4.2.3.1 Digitalub Team 2025.05.22
                 doc_tipo = 'GR'
                 et.SubElement(stock_movement, 'DocumentNumber').text = f"{doc_tipo} {picking.name}"
 
