@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Formerly: opc_certification_ao_v17
 {
-    'name': "Angola - DL Certification - Digitalub",
-    'summary': """Módulo de Certificação de Faturamento e Localização Fiscal para Angola (AGT / SAF-T)""",
+    'name': 'Angola Fiscal Compliance & AGT Certification (InvoiceOne)',
+    'summary': 'Angola Fiscal Compliance & Invoicing Certification (AGT & SAF-T AO) by InvoiceOne',
     'description': """
 Core de Certificação Fiscal da DIGITALUB para o mercado de Angola.
 ==================================================================
@@ -14,9 +14,9 @@ Core de Certificação Fiscal da DIGITALUB para o mercado de Angola.
     'author': "DIGITALUB ANGOLA, LDA",
     'website': "https://www.digitalub.ao",
     'category': 'Accounting/Localizations',
-    'version': '17.0.1.0',
+    'version': '17.0.1.0.1',
     'license': 'OPL-1',  # Licença comercial proprietária para venda na Odoo Store
-    'price': 799.00,     # Preço sugerido em Euros/Dólares na plataforma
+    'price': 640.0,     # Preço sugerido em Euros/Dólares na plataforma
     'currency': 'EUR',   # Moeda padrão da loja de aplicativos do Odoo
     
     # Dependências de módulos do sistema e localização base
