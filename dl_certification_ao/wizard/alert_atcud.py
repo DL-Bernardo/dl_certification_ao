@@ -11,6 +11,8 @@ class AlertAtcud(models.TransientModel):
     _description = "Wizard de adicao de atcud"
 
     def _compute_qr_code_image(self, qr_code_data):
+        if not qr_code_data:
+            return False
         qr = qrcode.QRCode(
             version=10,
             error_correction=qrcode.constants.ERROR_CORRECT_M,
@@ -27,6 +29,8 @@ class AlertAtcud(models.TransientModel):
 
     
     def get_tipo_documento_from_sequence(self, sequence_id):
+        if not sequence_id:
+            return ''
 
         #VENNDAS
         if sequence_id.code == 'sale.order.or':
@@ -40,10 +44,16 @@ class AlertAtcud(models.TransientModel):
 
         #FATURAS
         account_journal = self.env['account.journal']
-        for journal in account_journal.search([('sequence_id', '=', sequence_id.id) ]):
-            type = journal.saft_inv_type
-        for journal in account_journal.search([('refund_sequence_id', '=', sequence_id.id)]):
-            type = 'NC'
+        # No Odoo 17, sequence_id e refund_sequence_id podem não existir no account.journal
+        fields_list = account_journal._fields
+        if 'sequence_id' in fields_list:
+            journals = account_journal.search([('sequence_id', '=', sequence_id.id)])
+            for journal in journals:
+                type = journal.saft_inv_type
+        if 'refund_sequence_id' in fields_list:
+            journals = account_journal.search([('refund_sequence_id', '=', sequence_id.id)])
+            for journal in journals:
+                type = 'NC'
 
         #RECIBOS
         if sequence_id.code in ('account.payment.transfer', 'account.payment.customer.invoice',
@@ -148,12 +158,10 @@ class AlertAtcud(models.TransientModel):
     
     def open_sequences(self):
         self.treat_sequences()
-        # Formerly referenced 'opc_certification_ao_v17'
         return self.env.ref('dl_certification_ao.action_ir_sequence_atcud').read()[0]
 
     
     def call_wizard_alert_atcud(self, sequence_id, type_doc, hide):
-        # Formerly referenced 'opc_certification_ao_v17'
         action = self.env.ref('dl_certification_ao.action_wizard_alert_atcud').read()[0]
         action['context'] = {'default_sequence_id': sequence_id.id, 'default_tipo_documento': type_doc, 'default_hide': hide}
         return action

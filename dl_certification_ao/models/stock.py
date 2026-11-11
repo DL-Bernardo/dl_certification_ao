@@ -88,6 +88,8 @@ class StockPicking(models.Model):
     def _get_qr_code_generation(self):
         for picking in self:
             picking.qr_code_at = ''
+            # Desativado para Angola conforme pedido (ainda não comunicam via API)
+            continue
             if picking.hash:
                 nif_empresa = picking.company_id.vat
                 nif_cliente = picking.partner_id.commercial_partner_id and picking.partner_id.commercial_partner_id.vat or \
@@ -184,6 +186,17 @@ class StockPicking(models.Model):
     atcud = fields.Char(compute='_compute_atcud', string='ATCUD')
     qr_code_at = fields.Char(compute='_get_qr_code_generation', string='QR Code AT')
     qr_code_at_img = fields.Binary("QR Code", compute='_compute_qr_code_image')
+    isprinted = fields.Boolean('Impresso', copy=False)
+    print_count = fields.Integer('Contador de Impressões', default=0, copy=False)
+
+    def action_get_print_count(self):
+        self.ensure_one()
+        new_count = self.print_count + 1
+        self.write({
+            'isprinted': True,
+            'print_count': new_count
+        })
+        return new_count
     
     def do_new_transfer(self):
         for pick in self:
@@ -469,12 +482,11 @@ class StockPicking(models.Model):
                     codigo_validacao_serie = wizard_alert_atcud._get_codigo_validacao_serie(sequence_id_atcud, picking.date)
                     if not codigo_validacao_serie:
                         if self.env.user.has_group('account.group_account_manager'):
-                            # Formerly 'opc_certification_ao.action_ir_sequence_atcud'
                             action = self.env.ref('dl_certification_ao.action_ir_sequence_atcud')
                             wizard_alert_atcud.treat_sequences()
                             msg = _(
                                 'Falta definir o codigo de validação de sequência AT. '
-                                '\nPor favor aceda a Faturação \ Configuração \ Configurar ATCUD ou clique no link abaixo.')
+                                '\nPor favor aceda a Faturação -> Configuração -> Configurar ATCUD ou clique no link abaixo.')
                             raise RedirectWarning(msg, action.id, _('Aceder ao menu de Configuração ATCUD'))
                         else:
                             raise UserError(_(

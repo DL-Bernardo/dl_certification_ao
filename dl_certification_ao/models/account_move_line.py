@@ -30,7 +30,13 @@ class AccountMoveLine(models.Model):
     def _check_valuePositivoQ(self):
         for invoice_line in self:
             if invoice_line.quantity < 0:
-                raise UserError('A quantidade do produto não pode ser negativa.')
+                # Permite quantidade negativa se for uma linha de dedução de adiantamento
+                is_downpayment = False
+                if hasattr(invoice_line, 'sale_line_ids') and any(sl.is_downpayment for sl in invoice_line.sale_line_ids):
+                    is_downpayment = True
+                
+                if not is_downpayment:
+                    raise UserError('A quantidade do produto não pode ser negativa.')
         return True
 
     # metodo para forçar o formato de data

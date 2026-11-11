@@ -22,6 +22,7 @@
                             invisible="(certificated == True) or (state != 'draft')"
                             confirm="After this action you can not change this sale order anymore. You will have to
                                      create a new one or duplicate. Do you wish to proceed?" class="oe_highlight"/>
+                    <button name="action_print_quotation" string="Imprimir" type="object" class="oe_highlight" invisible="state == 'cancel'"/>
                 </xpath>
                 <xpath expr="//button[@name='action_quotation_send'][2]" position="replace">
                     <button name="action_quotation_send" string="Enviar por Email" type="object"
@@ -39,6 +40,10 @@
                     <field name="old_name_proforma" invisible="old_name_proforma == False"/>
                     <field name="old_name" invisible="old_name == False"/>
                 </field>
+                <xpath expr="//group[@name='partner_details']" position="inside">
+                    <field name="isprinted" readonly="1"/>
+                    <field name="print_count" readonly="1"/>
+                </xpath>
             </field>
         </record>
 

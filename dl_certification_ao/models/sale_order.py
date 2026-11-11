@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, date, timedelta
-import odoo.addons.decimal_precision as dp
 from odoo import models, fields, api, _
 from odoo.tools import float_round
 from . import hash_generation
@@ -19,6 +18,21 @@ tz_pt = timezone('Europe/Lisbon')
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
     
+    def _prepare_invoice(self):
+        invoice_vals = super(SaleOrder, self)._prepare_invoice()
+        
+        # Se o contexto trouxer 'force_fa_journal' (vindo do wizard de adiantamentos), força o diário FA
+        if self.env.context.get('force_fa_journal'):
+            fa_journal = self.env['account.journal'].search([
+                ('type', '=', 'sale'),
+                ('saft_inv_type', '=', 'FA'),
+                ('company_id', '=', self.company_id.id)
+            ], limit=1)
+            if fa_journal:
+                invoice_vals['journal_id'] = fa_journal.id
+                
+        return invoice_vals
+
     def _get_sequence_for_atcud(self):
         for sale in self:
             if sale.type_doc == 'OR':
@@ -56,6 +70,8 @@ class SaleOrder(models.Model):
     def _get_qr_code_generation(self):
         for sale in self:
             sale.qr_code_at = ''
+            # Desativado para Angola conforme pedido (ainda não comunicam via API)
+            continue
             if sale.hash:
                 nif_empresa = sale.company_id.vat
                 nif_cliente = sale.partner_id.commercial_partner_id and sale.partner_id.commercial_partner_id.vat or \
@@ -164,6 +180,25 @@ class SaleOrder(models.Model):
     qr_code_at = fields.Char(compute='_get_qr_code_generation', string='QR Code AT')
     qr_code_at_img = fields.Binary("QR Code", compute='_compute_qr_code_image')
     amount_by_group = fields.Binary(string="Tax amount by group", compute='_amount_by_group', help="type: [(name, amount, base, formated amount, formated base)]")
+    isprinted = fields.Boolean('Impresso', copy=False)
+    print_count = fields.Integer('Contador de Impressões', default=0, copy=False)
+
+    def action_get_print_count(self):
+        self.ensure_one()
+        new_count = self.print_count + 1
+        self.write({
+            'isprinted': True,
+            'print_count': new_count
+        })
+        return new_count
+
+    def action_print_quotation(self):
+        self.ensure_one()
+        if self.type_doc == 'PP':
+            return self.env.ref('sale.action_report_pro_forma_invoice').report_action(self)
+        else:
+            return self.env.ref('sale.action_report_saleorder').report_action(self)
+
 
     # Certificação das SO
     def certify(self):
@@ -175,7 +210,6 @@ class SaleOrder(models.Model):
             codigo_validacao_serie = wizard_alert_atcud._get_codigo_validacao_serie(sequence_id_atcud, self.date_order)
             if not codigo_validacao_serie:
                 if self.env.user.has_group('account.group_account_manager'):
-                    # Formerly 'opc_certification_ao.action_ir_sequence_atcud'
                     action = self.env.ref('dl_certification_ao.action_ir_sequence_atcud')
                     wizard_alert_atcud.treat_sequences()
                     msg = _(
@@ -353,18 +387,18 @@ class SaleOrderLine(models.Model):
     @api.constrains('product_uom_qty')
     def _check_valuePositivoQ(self):
         for sale_line in self:
-            if sale_line.product_uom_qty < 0:
+            if sale_line.product_uom_qty < 0 and not sale_line.is_downpayment:
                 raise ValueError('A quantidade do produto não pode ser negativa.')
-            return True
+        return True
 
     @api.constrains('price_unit')
     def _check_valuePositivoP(self):
         for sale_line in self:
-            if sale_line.price_unit < 0:
+            if sale_line.price_unit < 0 and not sale_line.is_downpayment:
                 raise ValueError(_('O preço unitario da ordem de venda '
-                                   '' + _(self.order_id.name) +', do produto ' + _(self.name) +' '
+                                   '' + str(sale_line.order_id.name) +', do produto ' + str(sale_line.name) +' '
                                      'não pode ser negativo.'))
-            return True
+        return True
 
     # proibir apagar linhas em estado diferente de rascunho
     def unlink(self):
@@ -376,9 +410,7 @@ class SaleOrderLine(models.Model):
                                         'no estado de rascunho e não certificados.'))
 
     # proibir alterar linhas em estado diferente de rascunho
+    # Desativado temporariamente porque bloqueia o funcionamento nativo do Odoo
+    # na sincronização de faturas (Adiantamentos, FTs, etc). O Odoo já protege SOs confirmados nativamente.
     def write(self, vals):
-        for line in self:
-            if line.order_id.state != 'draft':
-                raise ValidationError(_('Aviso\n Apenas é possível alterar linhas de documentos '
-                                        'no estado de rascunho.'))
         return super(SaleOrderLine, self).write(vals)

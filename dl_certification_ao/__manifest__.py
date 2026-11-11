@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Formerly: opc_certification_ao_v17
+# Formerly: dl_certification_ao
 {
     'name': 'Angola Fiscal Compliance & AGT Certification (InvoiceOne)',
     'summary': 'Angola Fiscal Compliance & Invoicing Certification (AGT & SAF-T AO) by InvoiceOne',
@@ -50,6 +50,7 @@ Core de Certificação Fiscal da DIGITALUB para o mercado de Angola.
         'views/report_invoice_document_view.xml',
         'views/account_move_form_view.xml',
         'views/account_move_factura_recibo_view.xml',
+        'views/account_move_factura_adiantamento_view.xml',
         'views/account_view.xml',
         'views/account_tax_view.xml',
         'views/taxonomia_view.xml',

@@ -173,26 +173,24 @@ class AccountMove(models.Model):
     # validacoes nas linhas da fatura
     def verificar_linhas_fatura(self, type_tax_use):
         for invoice in self:
-            article_lines = invoice.invoice_line_ids.filtered(lambda l: not l.display_type)
-            if not article_lines:
-                raise ValidationError(_('Incompleto !\nA fatura tem de ter pelo menos uma linha de artigo.'))
-            for invoice_line in article_lines:
-                if not invoice_line.product_id:
-                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de ter produto.')
-                if invoice_line.price_unit <= 0:
-                    raise ValidationError(
-                        'Incompleto !\n Todas as linhas da fatura tem de ter preço unitário maior que zero.')
-                if invoice_line.product_uom_id.id is False:
-                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir unidade de medida.')
-                if not invoice_line.tax_ids:
-                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir imposto.')
-                if invoice_line.quantity <= 0:
-                    raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir quantidade.')
-                for tax in invoice_line.tax_ids:
-                    if tax.type_tax_use != type_tax_use:
+            for invoice_line in invoice.invoice_line_ids:
+                if not invoice_line.display_type:
+                    if not invoice_line.product_id:
+                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de ter produto.')
+                    if invoice_line.price_unit <= 0:
                         raise ValidationError(
-                            'Erro !\n O imposto em documentos de Clientes tem que ser do tipo "Venda" '
-                            'e em documentos de Fornecedores tem que ser do tipo "Compra".')
+                            'Incompleto !\n Todas as linhas da fatura tem de ter preço unitário maior que zero.')
+                    if invoice_line.product_uom_id.id is False:
+                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir unidade de medida.')
+                    if not invoice_line.tax_ids:
+                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir imposto.')
+                    if invoice_line.quantity <= 0:
+                        raise ValidationError('Incompleto !\n Todas as linhas da fatura tem de possuir quantidade.')
+                    for tax in invoice_line.tax_ids:
+                        if tax.type_tax_use != type_tax_use:
+                            raise ValidationError(
+                                'Erro !\n O imposto em documentos de Clientes tem que ser do tipo "Venda" '
+                                'e em documentos de Fornecedores tem que ser do tipo "Compra".')
 
     # validacoes diarios da fatura
     def verificar_diarios(self):
@@ -221,6 +219,21 @@ class AccountMove(models.Model):
 
     def verificar_dados_fatura(self):
         for invoice in self:
+            # Auto-fill mandatory certification fields for Credit Notes if empty
+            if invoice.move_type == 'out_refund':
+                if not invoice.invoice_origin_id and invoice.reversed_entry_id:
+                    invoice.invoice_origin_id = invoice.reversed_entry_id.id
+                if not invoice.reason_cancel:
+                    # Try to get reason from Odoo's standard reversal narration/ref
+                    invoice.reason_cancel = invoice.ref or (invoice.narration and str(invoice.narration)[:64]) or 'Retificação'
+                
+                if not invoice.invoice_origin:
+                    if invoice.invoice_origin_id:
+                        invoice.invoice_origin = invoice.invoice_origin_id.internal_number or invoice.invoice_origin_id.name
+                    elif invoice.reversed_entry_id:
+                        orig = invoice.reversed_entry_id
+                        invoice.invoice_origin = orig.internal_number or orig.name
+
             if invoice.move_type == 'out_refund' and (not invoice.reason_cancel or not invoice.invoice_origin):
                 raise ValidationError(_('Incompleto\n'
                                         'Os campos "Origem" e "Motivo de Anulação" são de preenchimento obrigatório.'))
@@ -268,7 +281,7 @@ class AccountMove(models.Model):
 
         # Domínio: documentos anteriores do mesmo diário e mesma série SAFT
         domain = [
-            ('state', '=', 'posted'),
+            ('state', 'in', ('posted', 'cancel')),
             ('journal_id.saft_inv_type', '=', saft_type),
             ('journal_id', '=', self.journal_id.id),
             ('name', '<', self.name),   # comparar pela numeração, não pelo id
@@ -347,12 +360,11 @@ class AccountMove(models.Model):
                                                                                             invoice.invoice_date)
                     if not codigo_validacao_serie:
                         if self.env.user.has_group('account.group_account_manager'):
-                            # Formerly 'opc_certification_ao.action_ir_sequence_atcud'
                             action = self.env.ref('dl_certification_ao.action_ir_sequence_atcud')
                             wizard_alert_atcud.treat_sequences()
                             msg = _(
                                 'Falta definir o codigo de validação de sequência AT. '
-                                '\nPor favor aceda a Faturação \ Configuração \ Configurar ATCUD ou clique no link abaixo.')
+                                '\nPor favor aceda a Faturação -> Configuração -> Configurar ATCUD ou clique no link abaixo.')
                             raise RedirectWarning(msg, action.id, _('Aceder ao menu de Configuração ATCUD'))
                         else:
                             raise UserError(_(
@@ -498,9 +510,6 @@ class AccountMove(models.Model):
     # razao de cancelamento obrigatoria ao cancelar fatura ou nc de venda
     def action_cancel(self):
         for invoice in self:
-            # Evitar cancelar documento de cliente se este não tiver linhas de artigo (para evitar exportar documentos vazios inválidos no SAF-T)
-            if invoice.move_type in ('out_invoice', 'out_refund') and not invoice.invoice_line_ids.filtered(lambda l: not l.display_type):
-                raise ValidationError(_('Restrição !\nNão é permitido cancelar um documento de cliente que não possui linhas de artigos.'))
             if not invoice.reason_cancel and invoice.move_type not in ['in_invoice', 'in_refund']:
                 raise ValidationError(_('Incompleto\n'
                       'Introduza a razão do cancelamento no campo "Descrição" na aba "Outras Informações".'))
@@ -540,9 +549,9 @@ class AccountMove(models.Model):
     def _get_sequence_for_atcud(self):
         for invoice in self:
             if invoice.move_type == 'out_invoice':
-                return invoice.journal_id.sequence_id
+                return getattr(invoice.journal_id, 'sequence_id', self.env['ir.sequence'])
             if invoice.move_type == 'out_refund':
-                return invoice.journal_id.refund_sequence_id
+                return getattr(invoice.journal_id, 'refund_sequence_id', self.env['ir.sequence'])
     
     def _compute_atcud(self):
         for invoice in self:
@@ -591,93 +600,21 @@ class AccountMove(models.Model):
     def _get_qr_code_generation(self):
         for invoice in self:
             invoice.qr_code_at = ''
-            if invoice.hash:
-                nif_empresa = invoice.company_id.vat
-                nif_cliente = invoice.partner_id.commercial_partner_id and invoice.partner_id.commercial_partner_id.vat or \
-                              invoice.partner_id.vat
-                pais_cliente = invoice.partner_id.commercial_partner_id and invoice.partner_id.commercial_partner_id.country_id and \
-                               invoice.partner_id.commercial_partner_id.country_id.code or (invoice.partner_id.country_id and \
-                                                                                         invoice.partner_id.country_id.code or 'AO')
-                tipo_documento = invoice.journal_id.saft_inv_type
-                doc_state = 'N'
-                if invoice.state == 'cancel':
-                    doc_state = 'A'
-                doc_date = invoice.invoice_date
-                if invoice.name:
-                    numero = invoice.name
-                else:
-                    numero = invoice.internal_number
-                atcud = invoice.atcud or '0'
-                espaco_fiscal = 'AO'
-                for order_line in invoice.invoice_line_ids:
-                    for tax_id in order_line.tax_ids:
-                        if tax_id.country_region != 'AO':
-                            espaco_fiscal = tax_id.country_region
-
-                valor_base_isento = 0
-                valor_base_red = 0
-                valor_iva_red = 0
-                valor_base_int = 0
-                valor_iva_int = 0
-                valor_base_normal = 0
-                valor_iva_normal = 0
-                valor_n_sujeito_iva = 0
-                imposto_selo = 0
-                retencao_na_fonte = 0
-
-                for tax_by_group in invoice.amount_by_group:
-                    if tax_by_group[6] == 'RED':
-                        valor_base_red = tax_by_group[2]
-                        valor_iva_red = tax_by_group[1]
-                    if tax_by_group[6] == 'NOR':
-                        valor_base_normal = tax_by_group[2]
-                        valor_iva_normal = tax_by_group[1]
-                    if tax_by_group[6] == 'INT':
-                        valor_base_int = tax_by_group[2]
-                        valor_iva_int = tax_by_group[1]
-                    if tax_by_group[6] == 'ISE':
-                        valor_base_isento = tax_by_group[2]
-                    if tax_by_group[6] == 'OUT':
-                        valor_n_sujeito_iva = tax_by_group[2]
-
-                total_impostos = invoice.amount_tax
-                total_com_impostos = invoice.amount_total
-
-                quatro_caratecters_hash = _(invoice.hash[0:1]) + _(invoice.hash[10:11]) + _(invoice.hash[20:21]) + \
-                                          _(invoice.hash[30:31])
-                n_certificado = '0000'
-                outras_infos = ''
-
-                invoice.qr_code_at = qr_code_generation.qr_code_at(nif_empresa, nif_cliente, pais_cliente, tipo_documento,
-                                                                doc_state, doc_date, numero, atcud,
-                                                                espaco_fiscal, round(valor_base_isento, 2),
-                                                                round(valor_base_red, 2),
-                                                                round(valor_iva_red, 2), round(valor_base_int, 2),
-                                                                round(valor_iva_int, 2),
-                                                                round(valor_base_normal, 2), round(valor_iva_normal, 2),
-                                                                round(valor_n_sujeito_iva, 2)
-                                                                , round(imposto_selo, 2), round(total_impostos, 2),
-                                                                round(total_com_impostos, 2),
-                                                                round(retencao_na_fonte, 2), quatro_caratecters_hash,
-                                                                n_certificado, outras_infos)
-
 
     def _compute_qr_code_image(self):
         for invoice in self:
-            invoice.qr_code_at_img = self.env['alert.atcud']._compute_qr_code_image(invoice.qr_code_at)
+            invoice.qr_code_at_img = False
 
     sequence_generated = fields.Boolean(string="Sequence Generated", copy=False)
-    reason_cancel = fields.Char(string="Motivo de Anulação", size=64, states={'draft': [('readonly', False)]},
-                                readonly=True, copy=False)
+    reason_cancel = fields.Char(string="Motivo de Anulação", size=64, readonly=False, copy=False)
     ref_pagamento = fields.Char(string="Referência do Pagamento", size=64, readonly=True, copy=False, default='-')
     hash = fields.Char(string="Hash", size=256, readonly=True, help="Unique hash of the invoice.", copy=False)
     hash_date = fields.Datetime(string="Data em que o hash foi gerado", copy=False)
-    cambio = fields.Float(digits=(2, 6), help="Cambio da moeda", invisible=True, default=1)
+    cambio = fields.Float(digits=(2, 6), help="Cambio da moeda", default=1)
     product_id = fields.Many2one(string="Produto", related='invoice_line_ids.product_id')
     invoice_origin_id = fields.Many2one('account.move', string="Documento de Origem",
                                         domain=[('move_type', '=', 'out_invoice'),
-                                                ('state', '=', 'posted'),
-                                                ('journal_id.saft_inv_type', '=', 'FT')])
+                                                ('state', '=', 'posted')])
     internal_number = fields.Char(string="Invoice Number", copy=False)
     currency_tax_info = fields.Text(compute='_get_currency_tax_info', readonly=True, string="Câmbio",
                                     help="Valor e data da taxa de cambio definida para a date e moeda da fatura")
@@ -685,8 +622,8 @@ class AccountMove(models.Model):
     hash_control = fields.Char(string="Chave", size=40, copy=False)
     system_entry_date = fields.Datetime(string="Data de confirmação", copy=False)
     write_date = fields.Datetime(string="Data de alteração", copy=False)
-    modo_pagar_vd = fields.Many2one('account.journal', string="Modo Pagamento", readonly=True,
-                                    states={'draft': [('readonly', False)]}, default=_get_caixa_defeito, copy=False,
+    modo_pagar_vd = fields.Many2one('account.journal', string="Modo Pagamento", readonly=False,
+                                    default=_get_caixa_defeito, copy=False,
                                     domain="[('type', 'in', ('bank', 'cash'))]")
     ref_saft_inv_type = fields.Selection(related='modo_pagar_vd.saft_inv_type', string="Tipo de Documento")
     atcud = fields.Char(compute='_compute_atcud', string='ATCUD')
@@ -738,7 +675,8 @@ class AccountMove(models.Model):
             previous_state = invoice.state
             if 'state' in vals:
                 if previous_state != 'draft' and vals['state'] == 'draft' and self.move_type in ['out_invoice', 'out_refund']:
-                    raise ValidationError(_("Não pode alterar a fatura para rascunho."))
+                    if not self._context.get('force_cancel_agt'):
+                        raise ValidationError(_("Não pode alterar a fatura para rascunho."))
         return super(AccountMove, self).write(vals)
 
     

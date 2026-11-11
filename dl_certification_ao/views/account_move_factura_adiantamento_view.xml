@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Ação para Factura de Adiantamento -->
+        <record id="action_move_out_invoice_factura_adiantamento" model="ir.actions.act_window">
+            <field name="name">Factura de Adiantamento</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FA')]</field>
+            <field name="context" eval="{'default_move_type': 'out_invoice'}"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+        </record>
+
+        <!-- Menu para Factura de Adiantamento -->
+        <menuitem id="menu_action_move_out_invoice_factura_adiantamento"
+                  action="action_move_out_invoice_factura_adiantamento"
+                  parent="account.menu_finance_receivables"
+                  sequence="3"/>
+
+    </data>
+</odoo>

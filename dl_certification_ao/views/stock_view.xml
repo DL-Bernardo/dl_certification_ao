@@ -39,6 +39,8 @@
                     <field name="manual" readonly="state in ('done')"/>
                     <field name="is_gd" readonly="state in ('done')"/>
                     <field name="is_gc" readonly="state in ('done')"/>
+                    <field name="isprinted" readonly="1"/>
+                    <field name="print_count" readonly="1"/>
                 </field>
                 <xpath expr="//page[@name='extra']" position="after">
                     <page string="Dados de Transporte">

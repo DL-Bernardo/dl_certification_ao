@@ -31,6 +31,8 @@ class AccountJournal(models.Model):
                                       ('AA', 'Alienação de Activos'),
                                       ('DA', 'Devolução de Activos'),
                                       ('FS', 'Fatura Simplificada'),
+                                      ('FA', 'Factura de Adiantamento'),
+                                      ('NCA', 'Nota de Crédito de Adiantamento'),
                                       ('receipt', 'Recibo'),
                                       ('payment', 'Pagamento'),
                                       ('RC', 'Recibo Emitido'),
@@ -67,7 +69,7 @@ class AccountJournal(models.Model):
     def _check_type(self):
         for journal in self:
             if journal.type in ['sale', 'purchase'] and not journal.refund_sequence:
-                raise ValidationError('O diário tem de ter sequência de reembolso')
+                journal.refund_sequence = True
         return True
 
     @api.onchange('code')
@@ -91,7 +93,20 @@ class AccountJournal(models.Model):
                         return journal_code
         return journal.code
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('type') in ['sale', 'purchase']:
+                vals['refund_sequence'] = True
+        return super(AccountJournal, self).create(vals_list)
+
     def write(self, vals):
+        if 'type' in vals and vals.get('type') in ['sale', 'purchase']:
+            vals['refund_sequence'] = True
+        elif 'refund_sequence' in vals and not vals.get('refund_sequence'):
+            if any(j.type in ['sale', 'purchase'] for j in self):
+                vals['refund_sequence'] = True
+
         for journal in self:
             if 'manual' in vals or 'integrado' in vals:
                 total = self.env['account.payment'].search_count([('journal_id', '=', journal.id)])

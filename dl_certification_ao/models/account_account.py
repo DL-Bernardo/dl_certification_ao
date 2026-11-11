@@ -9,7 +9,7 @@ class AccountAccount(models.Model):
     _parent_name = "parent_id"
     _parent_store = True
 
-    # --- Fields from dl_certification_ao (formerly opc_certification_ao_v17) ---
+    # --- Fields from dl_certification_ao ---
     active = fields.Boolean(string="Active", default=True)
 
     tipo_conta = fields.Selection([
@@ -33,7 +33,7 @@ class AccountAccount(models.Model):
     internal_group = fields.Selection(selection_add=[('view', 'View')], ondelete={'view': 'cascade'})
 
 
-    # --- Methods from dl_certification_ao (formerly opc_certification_ao_v17) ---
+    # --- Methods from dl_certification_ao ---
     @api.model
     def create(self, vals):
         if 'code' in vals and not vals.get('parent_id'):

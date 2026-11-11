@@ -26,7 +26,6 @@ class AccountTax(models.Model):
                                    default="M01: Artigo 16.º n.º 6 do CIVA", copy=False)
     
     def configure_account_tax_group_and_saft_code(self):
-        # Formerly referenced 'opc_certification_ao_v17'
         for tax in self:
             if str(tax.amount)[:2] == '23':
                 tax.saft_tax_code = 'NOR'

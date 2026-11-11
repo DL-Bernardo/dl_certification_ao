@@ -77,6 +77,8 @@ class ResPartner(models.Model):
     @api.constrains('ref', 'company_id')
     def _check_ref(self):
         for partner in self:
+            if not partner.ref or partner.ref == '/':
+                continue
             partner_code_count = self.sudo().search_count([('id', '!=', partner.id),
                                                             ('ref', '=', partner.ref),
                                                             '|', ('company_id', '=', partner.company_id.id),
@@ -161,22 +163,6 @@ class ResPartner(models.Model):
                 vals['vat'] = vals['vat'].replace('PT', '')
 
         result = super(ResPartner, self).write(vals)
-        for partner in self:
-            # verificar se esá a tentar tirar o visto cliente em parceiros que tem faturas
-            if 'customer' in vals and not vals['customer']:
-                faturas = AccountMove.search_count([
-                    ('type', 'in', ['out_invoice', 'out_refund']),
-                    ('partner_id', '=', partner.id)])
-                if faturas > 0:
-                    raise ValidationError(_('O parceiro tem de ser cliente porque possui faturas/notas de crédito.'))
-
-            # contactos
-            if partner.parent_id and partner.parent_id.id:
-                if partner.customer != partner.parent_id.customer:
-                    partner.customer = partner.parent_id.customer
-                if partner.supplier != partner.parent_id.supplier:
-                    partner.supplier = partner.parent_id.supplier
-            # fim contactos
         return result
 
     @api.model
@@ -196,19 +182,7 @@ class ResPartner(models.Model):
             if str(vals['vat']) == '':
                 vals['vat'] = '999999999'
 
-            # contactos
-            if 'parent_id' in vals and vals['parent_id']:
-                self._cr.execute("select customer,supplier from res_partner where id=" + str(vals['parent_id']))
-                parent_partner_id = self._cr.fetchone()
-                if parent_partner_id[0] is True:
-                    vals['customer'] = True
-                else:
-                    vals['customer'] = False
-                if parent_partner_id[1] is True:
-                    vals['supplier'] = True
-                else:
-                    vals['supplier'] = False
-            # fim contactos
+            pass
 
         partner = super(ResPartner, self).create(vals)
 

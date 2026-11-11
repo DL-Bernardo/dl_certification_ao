@@ -8,34 +8,25 @@ class AccountMoveReversal(models.TransientModel):
     _inherit = "account.move.reversal"
 
     def _prepare_default_reversal(self, move):
-        """ Set reason cancel on credit note """
+        """ Set reason cancel on credit note and ensure origin is set """
         res = super()._prepare_default_reversal(move)
-        type = 'Anulação'
+        
+        # Determine the reason from the wizard
+        reason = getattr(self, 'reason', '') or _('Retificação / Anulação')
+        
+        # Determine origin document number
+        origin_doc = move.internal_number or move.name or ''
+        # AGT usually needs the type prefix (FT, FR, etc.)
+        if move.journal_id.saft_inv_type and origin_doc and not origin_doc.startswith(move.journal_id.saft_inv_type):
+            origin_doc = f"{move.journal_id.saft_inv_type} {origin_doc}"
 
-        refund_method = ''
-        if hasattr(self, 'refund_choice'):
-            refund_method = self.refund_choice
-        elif hasattr(self, 'refund_method'):
-            # Fallback for older/custom versions
-            refund_method = self.refund_method
-        else:
-            _logger.warning("Could not determine refund method: 'refund_choice' or 'refund_method' not found on account.move.reversal wizard.")
-
-        if refund_method == 'refund':
-            type = 'Rectificação'
-
-        new_origin = ''
-        contador = 0
-        for moves in self.move_ids:
-            contador = contador + 1
-            if moves.name:
-                if contador > 1:
-                    new_origin += str(moves.journal_id.saft_inv_type) + ' ' + str(moves.name) + ', '
-                else:
-                    new_origin += str(moves.journal_id.saft_inv_type) + ' ' + str(moves.name)
         res.update({
-            'reason_cancel': self.reason,
-            'invoice_origin': new_origin,
-            'ref': type,
+            'reason_cancel': reason[:64],
+            'invoice_origin': origin_doc,
+            'invoice_origin_id': move.id,
+            'ref': reason,
         })
+        if hasattr(move, 'fr_payment_journal_id') and move.fr_payment_journal_id:
+            res['fr_payment_journal_id'] = move.fr_payment_journal_id.id
+            
         return res

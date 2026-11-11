@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 from odoo import _
 from odoo.exceptions import UserError
-from . import sale_order
 from datetime import datetime
 
 

@@ -21,7 +21,7 @@ def qr_code_at(nif_empresa, nif_cliente, pais_cliente, tipo_documento, doc_state
     pais_cliente = '*C:' + _(pais_cliente)
     tipo_documento_export = '*D:' + _(tipo_documento)
     doc_state = '*E:' + _(doc_state)
-    doc_date = '*F:' + _(doc_date)[:10].replace('-','')
+    doc_date = '*F:' + str(doc_date)[:10].replace('-','')
     numero = '*G:' + _(tipo_documento) + ' ' + _(numero)
     atcud = '*H:' + _(atcud)
     codigo_espaco_fiscal = '*I'

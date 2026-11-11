@@ -28,7 +28,7 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     domain = [
         ('journal_id', '=', move.journal_id.id),
         ('company_id', '=', move.company_id.id),
-        ('state', '=', 'posted'),
+        ('state', 'in', ('posted', 'cancel')),
         ('id', '!=', move.id),
         ('hash', 'not in', [False, '']),
     ]
@@ -75,10 +75,6 @@ def hash(self, integrado, manual, datadocumento, datasistema, number, identi, nu
     hash_dir = "/opt/hashDir/"
     chave_privada = "/opt/hashDir/ChavePrivadaAO.pem"
     Path(hash_dir).mkdir(parents=True, exist_ok=True)
-
-    # Verificar se a chave privada existe para evitar erros genéricos de subprocess
-    if not os.path.exists(chave_privada):
-        raise UserError(_("Chave privada não encontrada em %s. Por favor, coloque a chave privada de certificação para Angola no caminho especificado.") % chave_privada)
 
     # Validação básica
     if not all([datadocumento, datasistema, number, totalbruto is not None]):

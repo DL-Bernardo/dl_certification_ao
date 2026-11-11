@@ -93,7 +93,6 @@ class WizardSaft(models.Model):
                     for user in self.env['res.users'].sudo().search([]):
                         if user.has_group('account.group_account_manager'):
                             # enviar e-mail para os manager de contabilidade
-                            # Formerly 'opc_certification_ao'
                             notification_template = self.env['ir.model.data'].sudo().check_object_reference (
                                 'dl_certification_ao', 'saft_aviso25')
 
@@ -1165,12 +1164,12 @@ class WizardSaft(models.Model):
                 # 4.2
                 movement_of_goods = et.Element('MovementOfGoods')
 
-                # 4.2.1 Digitalub Team 2025.05.27
+                # 4.2.1 Bernardo Editou 2025.05.27
                 #et.SubElement(movement_of_goods, 'NumberOfMovementLines').text = str(len(stock_picking))
                 total_lines = sum(len(picking.move_ids) for picking in stock_picking)
                 et.SubElement(movement_of_goods, 'NumberOfMovementLines').text = str(total_lines)
 
-                # 4.2.2 Digitalub Team 2025.05.27
+                # 4.2.2 Bernardo Editou 2025.05.27
                 #self.env.cr.execute("""
                         #SELECT cast(coalesce(sum(sm.product_qty),0) as char)
                         #FROM stock_move sm
@@ -1183,7 +1182,7 @@ class WizardSaft(models.Model):
             for picking in stock_picking:
                 # 4.2.3
                 stock_movement = et.SubElement(movement_of_goods, 'StockMovement')
-                # 4.2.3.1 Digitalub Team 2025.05.22
+                # 4.2.3.1 Bernardo Editou 2025.05.22
                 doc_tipo = 'GR'
                 et.SubElement(stock_movement, 'DocumentNumber').text = f"{doc_tipo} {picking.name}"
 

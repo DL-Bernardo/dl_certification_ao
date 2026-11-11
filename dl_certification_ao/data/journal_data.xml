@@ -1,31 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
 
+        <!-- Diário para Faturas Normais -->
         <record id="opc_journal_ft" model="account.journal">
-            <field name="name">Faturas (OPC)</field>
+            <field name="name">Faturas</field>
             <field name="code">FT</field>
             <field name="type">sale</field>
             <field name="saft_inv_type">FT</field>
-            <field name="company_id" ref="base.main_company"/>
+            <field name="refund_sequence" eval="True"/>
         </record>
 
+        <!-- Diário para Fatura - Recibo -->
         <record id="opc_journal_fr" model="account.journal">
-            <field name="name">Fatura-Recibo (OPC)</field>
+            <field name="name">Fatura-Recibo</field>
             <field name="code">FR</field>
             <field name="type">sale</field>
             <field name="saft_inv_type">FR</field>
             <field name="refund_sequence" eval="True"/>
-            <field name="company_id" ref="base.main_company"/>
         </record>
 
+        <!-- Diário para Nota de Crédito -->
         <record id="opc_journal_nc" model="account.journal">
-            <field name="name">Nota de Crédito (OPC)</field>
+            <field name="name">Nota de Crédito</field>
             <field name="code">NC</field>
             <field name="type">sale</field>
             <field name="saft_inv_type">NC</field>
             <field name="refund_sequence" eval="True"/>
-            <field name="company_id" ref="base.main_company"/>
         </record>
+
+    </data>
+
+    <data>
+
+        <!-- Ação para Factura de Adiantamento -->
+        <record id="action_move_out_invoice_factura_adiantamento" model="ir.actions.act_window">
+            <field name="name">Factura de Adiantamento</field>
+            <field name="res_model">account.move</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FA')]</field>
+            <field name="context" eval="{'default_move_type': 'out_invoice'}"/>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+        </record>
+
+        <!-- Menu para Factura de Adiantamento -->
+        <menuitem id="menu_action_move_out_invoice_factura_adiantamento"
+                  action="action_move_out_invoice_factura_adiantamento"
+                  parent="account.menu_finance_receivables"
+                  sequence="3"/>
 
     </data>
 </odoo>

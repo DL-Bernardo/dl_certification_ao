@@ -8,7 +8,7 @@ class ProductProduct(models.Model):
     _inherit = "product.product"
 
     default_code = fields.Char(string="Internal Reference", size=60, required=True, copy=False, default='/', index=True)
-    barcode = fields.Char('Barcode', copy=False, size=60, oldname='loc_barcode')
+    barcode = fields.Char('Barcode', copy=False, size=60)
 
     @api.constrains('default_code', 'company_id')
     def _check_default_code(self):

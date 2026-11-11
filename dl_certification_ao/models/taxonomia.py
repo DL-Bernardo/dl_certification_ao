@@ -42,7 +42,7 @@ class TaxonomiaPeriodoLinhas(models.Model):
     _name = "taxonomia.periodo.linhas"
     _description = "tabela de linhas de relacao entre taxonomias e periodos"
 
-    name = fields.Many2one('taxonomia', sring='Taxonomia')
+    name = fields.Many2one('taxonomia', string='Taxonomia')
     contas = fields.Many2many('account.account', 'taxonomia_account_rel',
                               'taxonomia_periodo_linhas_id', 'account_id', string='Contas')
     periodo_id = fields.Many2one('taxonomia.periodo', string="Periodo")

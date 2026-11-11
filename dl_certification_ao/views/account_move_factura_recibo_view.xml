@@ -6,7 +6,8 @@
         <record id="action_move_out_invoice_normal" model="ir.actions.act_window">
             <field name="name">Facturas</field>
             <field name="res_model">account.move</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,kanban,form,activity</field>
+            <field name="view_id" ref="account.view_out_invoice_tree"/>
             <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FT')]</field>
             <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('dl_certification_ao.opc_journal_ft')}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>
@@ -22,7 +23,8 @@
         <record id="action_move_out_invoice_factura_recibo" model="ir.actions.act_window">
             <field name="name">Factura - Recibo</field>
             <field name="res_model">account.move</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,kanban,form,activity</field>
+            <field name="view_id" ref="account.view_out_invoice_tree"/>
             <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FR')]</field>
             <field name="context" eval="{'default_move_type': 'out_invoice', 'default_journal_id': ref('dl_certification_ao.opc_journal_fr')}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>
