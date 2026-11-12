@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
 
@@ -45,7 +45,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='street']" position="before">
                     <field name="nif_duplicado" invisible="1"/>
-                    <div style="background-color:#ffee99; border: 1px solid #ccbb66" attrs="{'invisible': [('nif_duplicado', '!=', True)]}">
+                    <div invisible="nif_duplicado != True" style="background-color:#ffee99; border: 1px solid #ccbb66">
                             Já existe um parceiro com esse nif.
                         </div>
                 </xpath>
@@ -58,21 +58,24 @@
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="arch" type="xml">
                 <field name="ref" position="after">
-                    <field name="nif_representante" placeholder="200111222" attrs="{'invisible': [('is_company', '!=', True)]}"/>
-                    <field name="nif_toc" placeholder="200111222" attrs="{'invisible': [('is_company', '!=', True)]}"/>
-                    <field name="fin_code" placeholder="****" attrs="{'invisible': [('is_company', '!=', True)]}"/>
-                    <field name="reg_com" placeholder="500111222" attrs="{'invisible': [('is_company', '!=', True)]}"/>
-                    <field name="conservatoria" placeholder="CRC-Porto" attrs="{'invisible': [('is_company', '!=', True)]}"/>
+                    <field name="nif_representante" invisible="is_company != True"
+                           placeholder="200111222"/>
+                    <field name="nif_toc" invisible="is_company != True" placeholder="200111222"/>
+                    <field name="fin_code" invisible="is_company != True" placeholder="****"/>
+                    <field name="reg_com" invisible="is_company != True" placeholder="500111222"/>
+                    <field name="conservatoria" invisible="is_company != True"
+                           placeholder="CRC-Porto"/>
                 </field>
                 <!-- NIF -->
                 <xpath expr="//field[@name='vat']" position="replace">
                     <label for="vat"/>
                     <div class="o_row">
                         <field string="NIF" name="vat" filter_domain="[('vat','ilike',self)]"/>
-                        <button type="object" name="verificar_nif" class="btn-sm btn-link mb4 fa fa-check" aria-label="Validate NIF" title="Validate NIF"/>
+                        <button type="object" name="verificar_nif" class="btn-sm btn-link mb4 fa fa-check"
+                                aria-label="Validate NIF" title="Validate NIF" />
                     </div>
                 </xpath>
-                <field name="vat" position="attributes">
+                <field name='vat' position="attributes">
                     <attribute name="string">Contribuinte</attribute>
                     <attribute name="placeholder">NIF: 99999990</attribute>
                 </field>
@@ -99,7 +102,8 @@
             <field name="type">search</field>
             <field name="arch" type="xml">
                 <field name="name" position="replace">
-                    <field name="name" filter_domain="['|','|','|','|',('name','ilike',self),('parent_id','ilike',self),('ref','=',self),('vat','ilike',self),('email','ilike',self)]"/>
+                    <field name="name"
+                           filter_domain="['|','|','|','|',('name','ilike',self),('parent_id','ilike',self),('ref','=',self),('vat','ilike',self),('email','ilike',self)]"/>
                     <field string="Código" name="ref" filter_domain="[('ref','ilike',self)]"/>
                     <field string="NIF" name="vat" filter_domain="[('vat','ilike',self)]"/>
                     <field string="E-Mail" name="email" filter_domain="[('email','ilike',self)]"/>

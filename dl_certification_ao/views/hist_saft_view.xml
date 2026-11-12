@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
 
@@ -9,9 +9,12 @@
             <field name="arch" type="xml">
                 <form string="Histórico SAFT-PT">
                     <header>
-                        <button name="do_valida" string="Validar" type="object" icon="fa-check" attrs="{'invisible': [('state', '!=', 'nao_validado')]}"/>
-                        <button name="do_submete" string="Submeter" type="object" icon="fa-hand-o-down" attrs="{'invisible': [('state', 'not in', ('nao_validado', 'validado'))]}"/>
-                        <button name="do_nao_valida" string="Voltar a Não Validado" type="object" icon="fa-arrow-circle-left" attrs="{'invisible': [('state', 'not in', ('submetido', 'validado'))]}"/>
+                        <button name="do_valida" string="Validar" type="object"
+                                icon="fa-check" invisible="state != 'nao_validado'"/>
+                        <button name="do_submete" string="Submeter" type="object"
+                                icon="fa-hand-o-down" invisible="state not in ('nao_validado', 'validado')"/>
+                        <button name="do_nao_valida" string="Voltar a Não Validado" type="object"
+                                icon="fa-arrow-circle-left" invisible="state not in ('submetido', 'validado')"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>
@@ -82,7 +85,11 @@
             <field name="context">{}</field>
         </record>
 
-        <menuitem id="hist_saft_tree_menu_opc" action="hist_saft_action" parent="dl_certification_ao.menu_wizard_saft_pai" sequence="3"/>
+        <menuitem
+                id="hist_saft_tree_menu_opc"
+                action="hist_saft_action"
+                parent="dl_certification_ao.menu_wizard_saft_pai"
+                sequence="3"/>
 
     </data>
 </odoo>

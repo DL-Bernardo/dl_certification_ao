@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
 
@@ -38,7 +38,8 @@
                     <attribute name="invisible">1</attribute>
                 </button>
                 <button name="action_cancel" position="after">
-                    <button name="%(action_wizard_cancelar_so)d" type="action" string="Cancelar" attrs="{'invisible': [('state', '=', 'cancel')]}"/>
+                    <button name="%(action_wizard_cancelar_so)d" type='action' string="Cancelar"
+                            invisible="state == 'cancel'"/>
                 </button>
             </field>
         </record>
