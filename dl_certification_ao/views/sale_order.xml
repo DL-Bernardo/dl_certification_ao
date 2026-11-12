@@ -32,7 +32,7 @@
                     <button name="action_quotation_send" string="Enviar por Email" type="object"
                             invisible="certificated != True"/>
                 </xpath>
-                <field name="require_payment" position="after">
+                <field name="require_signature" position="after">
                     <field name="descricao_cancel"
                            readonly="state == 'cancel'"
                            invisible="state != 'cancel'"/>

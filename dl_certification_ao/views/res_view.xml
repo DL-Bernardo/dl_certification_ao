@@ -13,8 +13,6 @@
                     <field name="third_parties_billing_indicator"/>
                     <field name="validar_nif"/>
                     <field name="validar_nif_duplicados"/>
-                </field>
-                <field name="company_registry" position="after">
                     <field name="conservatoria"/>
                     <field name="reg_com"/>
                 </field>
