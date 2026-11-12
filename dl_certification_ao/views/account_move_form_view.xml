@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <odoo>
     <record id="view_move_form_modo_pagamento" model="ir.ui.view">
         <field name="name">account.move.form.modo.pagamento</field>
@@ -6,10 +6,7 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_bank_id']" position="after">
-                <field name="modo_pagar_vd"
-                       invisible="['|', ('journal_id.saft_inv_type', '!=', 'FR'), ('journal_id.paga_me', '=', False)]"
-                       required="[('journal_id.saft_inv_type', '=', 'FR'), ('journal_id.paga_me', '=', True)]"
-                       readonly="state != 'draft'"/>
+                <field name="modo_pagar_vd" attrs="{'invisible': [('move_type', '!=', 'out_invoice')], 'readonly': [('state', '!=', 'draft')]}"/>
             </xpath>
         </field>
     </record>
@@ -21,9 +18,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="invoice_origin_id" invisible="1" required="0"/>
-                <field name="invoice_origin"
-                       invisible="move_type == 'out_refund'"
-                       readonly="move_type != 'out_refund'" force_save="1"/>
+                <field name="invoice_origin" force_save="1" attrs="{'invisible': [('move_type', '=', 'out_refund')], 'readonly': [('move_type', '!=', 'out_refund')]}"/>
                 <field name="reason_cancel" invisible="1" required="0"/>
             </xpath>
         </field>

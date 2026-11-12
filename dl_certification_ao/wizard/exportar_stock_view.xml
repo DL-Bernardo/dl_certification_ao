@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <odoo>
     <data>
 
@@ -9,15 +9,14 @@
             <field name="arch" type="xml">
                 <form string="Export Stock">
                     <field name="state" invisible="1"/>
-                    <group invisible="state != 'choose'">
+                    <group attrs="{'invisible': [('state', '!=', 'choose')]}">
                         <separator string="Exportar Stock"/>
                         <field name="comp" widget="selection"/>
                         <field name="tipo_prod"/>
-                        <field name="tipo_produto_saft_ids" widget="many2many_tags"
-                               options="{'no_create_edit': True}"/>
+                        <field name="tipo_produto_saft_ids" widget="many2many_tags" options="{'no_create_edit': True}"/>
                         <field name="data"/>
                     </group>
-                    <group invisible="state != 'get'">
+                    <group attrs="{'invisible': [('state', '!=', 'get')]}">
                         <separator string="Pronto"/>
                         <p>Guarde o ficheiro carregando aqui:</p>
                         <field name="filedata" nolabel="1" readonly="1" filename="name"/>
@@ -25,12 +24,9 @@
                         <field name="info" widget="html" readonly="1"/>
                     </group>
                     <footer>
-                        <button icon="fa-arrow-right" name="act_getfile" string="Exportar" type="object"
-                                invisible="state != 'choose'"/>
-                        <button icon="fa-close" name="act_cancel" special="cancel" string="Cancelar" type="object"
-                                invisible="state != 'choose'"/>
-                        <button icon="fa-close" string="Fechar" class="btn-secondary" special="cancel"
-                                invisible="state == 'choose'"/>
+                        <button icon="fa-arrow-right" name="act_getfile" string="Exportar" type="object" attrs="{'invisible': [('state', '!=', 'choose')]}"/>
+                        <button icon="fa-close" name="act_cancel" special="cancel" string="Cancelar" type="object" attrs="{'invisible': [('state', '!=', 'choose')]}"/>
+                        <button icon="fa-close" string="Fechar" class="btn-secondary" special="cancel" attrs="{'invisible': [('state', '=', 'choose')]}"/>
                     </footer>
                 </form>
             </field>
@@ -63,8 +59,7 @@
         </record>
 
         <!-- menu exportar stock valorizado -->
-        <menuitem action="action_exp_stock_valorizado" id="menu_exp_stock_valorizado" parent="menu_wizard_saft_pai"
-                  sequence="2"/>
+        <menuitem action="action_exp_stock_valorizado" id="menu_exp_stock_valorizado" parent="menu_wizard_saft_pai" sequence="2"/>
 
     </data>
 </odoo>

@@ -100,29 +100,27 @@ class AccountTax(models.Model):
         return super(AccountTax, self).write(vals)
 
     # validacoes ao criar impostos
-    @api.model
-    def create(self, vals):
-        # niveis de imposto
-        if 'description' in vals and vals['description']:
-            if vals['description'].lower().find('isento') != -1:
-                vals['saft_tax_code'] = 'ISE'
-            elif vals['description'].lower().find('normal') != -1:
-                vals['saft_tax_code'] = 'NOR'
-            elif vals['description'].lower().find('reduzida') != -1:
-                vals['saft_tax_code'] = 'RED'
-            elif vals['description'].lower().find('intermedia') != -1:
-                vals['saft_tax_code'] = 'INT'
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'description' in vals and vals['description']:
+                if vals['description'].lower().find('isento') != -1:
+                    vals['saft_tax_code'] = 'ISE'
+                elif vals['description'].lower().find('normal') != -1:
+                    vals['saft_tax_code'] = 'NOR'
+                elif vals['description'].lower().find('reduzida') != -1:
+                    vals['saft_tax_code'] = 'RED'
+                elif vals['description'].lower().find('intermedia') != -1:
+                    vals['saft_tax_code'] = 'INT'
+            vals['include_base_amount'] = False
 
-        vals['include_base_amount'] = False
-        resultado = super(AccountTax, self).create(vals)
-        resultado._validar_imposto(vals)
+        resultados = super(AccountTax, self).create(vals_list)
+        for resultado, vals in zip(resultados, vals_list):
+            resultado._validar_imposto(vals)
+            if not self.env.context.get('install_mode'):
+                resultado.configure_account_tax_group_and_saft_code()
 
-        # If we are in install_mode, it's likely another module (like l10n_pt)
-        # creating its own taxes and tax groups. We should not interfere.
-        if not self.env.context.get('install_mode'):
-            resultado.configure_account_tax_group_and_saft_code()
-
-        return resultado
+        return resultados
 
     # validacoes ao apagar impostos
     def unlink(self):

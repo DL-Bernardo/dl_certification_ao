@@ -307,12 +307,12 @@ class SaleOrder(models.Model):
                 raise ValidationError(_('Aviso\n Apenas é possível eliminar documentos '
                                         'no estado de rascunho e não certificados.'))
 
-    @api.model
-    def create(self, vals):
-        if (not self.env.context.get('default_type_doc') and not self.type_doc) or self.type_doc == 'NE':
-            vals.update({
-                'type_doc': 'OR'})
-        return super(SaleOrder, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if (not self.env.context.get('default_type_doc') and not vals.get('type_doc')) or vals.get('type_doc') == 'NE':
+                vals.update({'type_doc': 'OR'})
+        return super(SaleOrder, self).create(vals_list)
 
     def copy(self, default=None):
         default = {} if default is None else default.copy()

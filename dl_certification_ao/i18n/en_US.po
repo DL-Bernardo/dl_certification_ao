@@ -1136,7 +1136,7 @@ msgstr "Discharge"
 #: code:addons/dl_certification_ao/models/stock.py:0
 #, python-format
 msgid "Deve definir a sequência como \"Sem Espaços\"."
-msgstr "You must define the sequence as \ "No Spaces \"
+msgstr "You must define the sequence as \"No Spaces "
 
 #. module: dl_certification_ao
 #: code:addons/dl_certification_ao/models/ir_module_module.py:0
@@ -1269,7 +1269,7 @@ msgstr ""
 "Error in sequence. \n"
 "The prefix field cannot include percentages, unless you define different strings per period. \n"
 "\n"
-"Click the button below \" Change Prefix \ "to set the current year to the prefix instead of the percentage variable."
+"Click the button below \" Change Prefix \"to set the current year to the prefix instead of the percentage variable."
 
 #. module: dl_certification_ao
 #: code:addons/dl_certification_ao/models/account_move.py:0
@@ -1278,7 +1278,7 @@ msgid ""
 "Erro!\n"
 " Deve definir a sequência como \"Sem Espaços\"."
 msgstr ""
-"You must define the sequence as \" No Spaces \ "."
+"You must define the sequence as \" No Spaces \"."
 
 #. module: dl_certification_ao
 #: model:ir.model.fields.selection,name:dl_certification_ao.selection__stock_picking__at_status__error
@@ -1887,7 +1887,7 @@ msgid ""
 "Introduza a razão do cancelamento no campo \"Descrição\" na aba \"Outras Informações\"."
 msgstr ""
 "Incomplete \n"
-"Enter the reason for the cancellation in the \" Description \ "field in the \" Other Information \ "tab."
+"Enter the reason for the cancellation in the \" Description \"field in the \" Other Information \"tab."
 
 #. module: dl_certification_ao
 #: code:addons/dl_certification_ao/models/account_move.py:0
@@ -1897,7 +1897,7 @@ msgid ""
 "Os campos \"Origem\" e \"Motivo de Anulação\" são de preenchimento obrigatório."
 msgstr ""
 "Incomplete \ n"
-"The fields \" Origin \ "and \" Reason for Cancellation \ "are mandatory."
+"The fields \" Origin \"and \" Reason for Cancellation \"are mandatory."
 
 #. module: dl_certification_ao
 #: code:addons/dl_certification_ao/models/sale_order.py:0
@@ -1907,7 +1907,7 @@ msgid ""
 "Introduza a razão do cancelamento no campo \"Motivo do Cancelamento\"."
 msgstr ""
 "Incomplete. \ N"
-"Enter the reason for the cancellation in the \" Reason for Cancellation \ "field."
+"Enter the reason for the cancellation in the \" Reason for Cancellation \"field."
 
 #. module: dl_certification_ao
 #: code:addons/dl_certification_ao/models/account_move.py:0
@@ -2410,7 +2410,7 @@ msgstr "Number of Invoices"
 #: code:addons/dl_certification_ao/wizard/wizard_l10n_pt_saft.py:0
 #, python-format
 msgid "Não existe um cliente com o nome \"Consumidor Final\" para a sua empresa"
-msgstr "There is no customer named \ "End Consumer \" for your company"
+msgstr "There is no customer named \"End Consumer \" for your company"
 
 #. module: dl_certification_ao
 #: code:addons/dl_certification_ao/wizard/wizard_l10n_pt_saft.py:0
@@ -2735,7 +2735,7 @@ msgstr "Parents Certification"
 #: code:addons/dl_certification_ao/models/stock.py:0
 #, python-format
 msgid "Para validar a guia, o campo \"Procura Inicial\" tem de ser superior a 0."
-msgstr "To validate the tab, the \ "Initial Search \" field must be greater than 0."
+msgstr "To validate the tab, the \"Initial Search \" field must be greater than 0."
 
 #. module: dl_certification_ao
 #: model:ir.model.fields,field_description:dl_certification_ao.field_wizard_l10n_pt_import_saft__partes
@@ -3108,8 +3108,8 @@ msgstr ""
 msgid ""
 "Selecionar isto se quer que as faturas no Diário de VDs seja automaticamente"
 " pago"
-msgstr ""Select this if you want invoices in the RV Journal to be automatically"
-" paid out""
+msgstr "\"Select this if you want invoices in the RV Journal to be automatically"
+" paid out\""
 
 #. module: dl_certification_ao
 #: model:ir.model.fields,field_description:dl_certification_ao.field_utilizador_financas__passe

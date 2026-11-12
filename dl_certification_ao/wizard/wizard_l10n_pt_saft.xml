@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <odoo>
     <data>
 
@@ -8,14 +8,14 @@
             <field name="arch" type="xml">
                 <form string="Gerar SAFT-AO">
                     <field name="state" invisible="1"/>
-                    <group invisible="state != 'choose'">
+                    <group attrs="{'invisible': [('state', '!=', 'choose')]}">
                         <separator string="Export SAFT-PT"/>
                         <field name="comp" widget="selection"/>
                         <field name="date_inicio" required="1"/>
                         <field name="date_fim" required="1"/>
                         <field name="tipo"/>
                     </group>
-                    <group invisible="state != 'get'">
+                    <group attrs="{'invisible': [('state', '!=', 'get')]}">
                         <separator string="Pronto"/>
                         <p>Guarde o ficheiro saft carregando aqui:</p>
                         <field name="filedata" nolabel="1" readonly="1" filename="name"/>
@@ -23,12 +23,9 @@
                         <field name="info" widget="html" readonly="1"/>
                     </group>
                     <footer>
-                        <button icon="fa-close" name="act_cancel" special="cancel" string="Cancelar" type="object"
-                                invisible="state != 'choose'"/>
-                        <button icon="fa-arrow-right" name="act_getfile" string="Exportar" type="object"
-                                invisible="state != 'choose'"/>
-                        <button icon="fa-close" name="act_destroy" special="cancel" string="Fechar" type="object"
-                                invisible="state != 'get'"/>
+                        <button icon="fa-close" name="act_cancel" special="cancel" string="Cancelar" type="object" attrs="{'invisible': [('state', '!=', 'choose')]}"/>
+                        <button icon="fa-arrow-right" name="act_getfile" string="Exportar" type="object" attrs="{'invisible': [('state', '!=', 'choose')]}"/>
+                        <button icon="fa-close" name="act_destroy" special="cancel" string="Fechar" type="object" attrs="{'invisible': [('state', '!=', 'get')]}"/>
                     </footer>
                 </form>
             </field>
@@ -42,10 +39,7 @@
             <field name="target">new</field>
         </record>
 
-        <menuitem action="action_wizard_saft"
-                  id="menu_wizard_saft"
-                  parent="dl_certification_ao.menu_wizard_saft_pai"
-                  sequence="1"/>
+        <menuitem action="action_wizard_saft" id="menu_wizard_saft" parent="dl_certification_ao.menu_wizard_saft_pai" sequence="1"/>
 
     </data>
 </odoo>

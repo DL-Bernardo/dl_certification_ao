@@ -29,16 +29,12 @@ class ProductProduct(models.Model):
         defaults.update({'default_code': '/'})
         return defaults
 
-    @api.model
-    def create(self, vals):
-        """ Herança do método create da tabela product.product
-            ao criar um produto, se o valor no campo default_code for '/',
-            preencher o campo com a sequência seguinte definida
-            para os produtos
-        """
-        if vals.get('default_code', '/') == '/':
-            vals['default_code'] = self.env['ir.sequence'].get('produtos.ref.seq.itc') or ''
-        return super(ProductProduct, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('default_code', '/') == '/':
+                vals['default_code'] = self.env['ir.sequence'].next_by_code('produtos.ref.seq.itc') or ''
+        return super(ProductProduct, self).create(vals_list)
 
     
     def copy(self, default={}):

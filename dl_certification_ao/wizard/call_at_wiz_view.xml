@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <odoo>
     <data>
 
@@ -9,12 +9,11 @@
             <field name="arch" type="xml">
                 <form>
                     <group>
-                        <field name="data" required="1" readonly="resultado != False"/>
+                        <field name="data" required="1" attrs="{'readonly': [('resultado', '!=', False)]}"/>
                     </group>
                     <field name="resultado" readonly="1"/>
                     <footer>
-                        <button name="call_at_multi" string="Fazer Pedido" type="object"
-                                class="btn-primary" invisible="resultado != False"/>
+                        <button name="call_at_multi" string="Fazer Pedido" type="object" class="btn-primary" attrs="{'invisible': [('resultado', '!=', False)]}"/>
                         <button string="Fechar" class="btn-secondary" special="cancel"/>
                     </footer>
                 </form>

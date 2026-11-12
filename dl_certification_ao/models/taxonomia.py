@@ -22,20 +22,21 @@ class TaxonomiaPeriodo(models.Model):
     end_date = fields.Date("Fim")
     taxonomias = fields.One2many('taxonomia.periodo.linhas', 'periodo_id', 'Taxonomias')
 
-    @api.model
-    def create(self, vals):
-        if 'company_id' not in vals or not vals['company_id']:
-            empresa = self.env['res.company'].search([])
-            if len(empresa) > 0:
-                vals['company_id'] = empresa[0].id
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'company_id' not in vals or not vals['company_id']:
+                empresa = self.env['res.company'].search([])
+                if len(empresa) > 0:
+                    vals['company_id'] = empresa[0].id
 
-        if 'start_date' not in vals or not vals['start_date']:
-            vals['start_date'] = datetime.datetime.strptime(str(datetime.datetime.now())[:4] + "-01-01", '%Y-%m-%d')
+            if 'start_date' not in vals or not vals['start_date']:
+                vals['start_date'] = datetime.datetime.strptime(str(datetime.datetime.now())[:4] + "-01-01", '%Y-%m-%d')
 
-        if 'end_date' not in vals or not vals['end_date']:
-            vals['end_date'] = datetime.datetime.strptime(str(datetime.datetime.now())[:4] + "-12-31", '%Y-%m-%d')
+            if 'end_date' not in vals or not vals['end_date']:
+                vals['end_date'] = datetime.datetime.strptime(str(datetime.datetime.now())[:4] + "-12-31", '%Y-%m-%d')
 
-        return super(TaxonomiaPeriodo, self).create(vals)
+        return super(TaxonomiaPeriodo, self).create(vals_list)
 
 
 class TaxonomiaPeriodoLinhas(models.Model):
@@ -60,21 +61,21 @@ class TaxonomiaPeriodoLinhas(models.Model):
             self.contas = [(6, 0, lista_contas)]
 
     # metodo que adiciona taxonomias automaticamente caso o campo esteje vazio
-    @api.model
-    def create(self, vals):
-        taxonomia_line_id = super(TaxonomiaPeriodoLinhas, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super(TaxonomiaPeriodoLinhas, self).create(vals_list)
+        for taxonomia_line_id, vals in zip(records, vals_list):
+            if 'contas' not in vals or vals['contas'] == []:
+                if taxonomia_line_id.name:
+                    lista_contas = []
+                    contasstr = taxonomia_line_id.name.contas.split('|')
+                    for contastr in contasstr:
+                        contas = self.env['account.account'].search([('code', '=like', contastr.replace(" ", "") + '%')])
+                        for conta in contas:
+                            lista_contas.append(conta.id)
+                    taxonomia_line_id.contas = [(6, 0, lista_contas)]
 
-        if 'contas' not in vals or vals['contas'] == []:
-            if taxonomia_line_id.name:
-                lista_contas = []
-                contasstr = taxonomia_line_id.name.contas.split('|')
-                for contastr in contasstr:
-                    contas = self.env['account.account'].search([('code', '=like', contastr.replace(" ", "") + '%')])
-                    for conta in contas:
-                        lista_contas.append(conta.id)
-                taxonomia_line_id.contas = [(6, 0, lista_contas)]
-
-        return taxonomia_line_id
+        return records
 
 
 class Taxonomia(models.Model):
@@ -86,17 +87,17 @@ class Taxonomia(models.Model):
     deprecated = fields.Boolean("Obsoleto")
 
     # actualizar a taxonomia no imposto
-    @api.model
-    def create(self, vals):
-        taxonomia_id = super(Taxonomia, self).create(vals)
-
-        if 'contas' in vals and vals['contas']:
-            contas = vals['contas'].replace(' ', '').split('|')
-            for conta in contas:
-                account_account_id = self.env['account.account'].search([('code', 'like', conta)])
-                for account_id in account_account_id:
-                    if str(account_id.code[:len(conta)]) == str(conta):
-                        self.env.cr.execute("UPDATE account_account "
-                                            "SET taxonomia_id=%s "
-                                            "WHERE id=%s", (taxonomia_id.id, account_id.id))
-        return taxonomia_id
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super(Taxonomia, self).create(vals_list)
+        for taxonomia_id, vals in zip(records, vals_list):
+            if 'contas' in vals and vals['contas']:
+                contas = vals['contas'].replace(' ', '').split('|')
+                for conta in contas:
+                    account_account_id = self.env['account.account'].search([('code', 'like', conta)])
+                    for account_id in account_account_id:
+                        if str(account_id.code[:len(conta)]) == str(conta):
+                            self.env.cr.execute("UPDATE account_account "
+                                                "SET taxonomia_id=%s "
+                                                "WHERE id=%s", (taxonomia_id.id, account_id.id))
+        return records

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
-from odoo.osv import expression
 
 
 class AccountAccount(models.Model):
@@ -34,33 +33,35 @@ class AccountAccount(models.Model):
 
 
     # --- Methods from dl_certification_ao ---
-    @api.model
-    def create(self, vals):
-        if 'code' in vals and not vals.get('parent_id'):
-            for i in range(1, 10):
-                parent_code = vals['code'][:-i]
-                if parent_code:
-                    parent = self.env['account.account'].search([('code', '=', parent_code)], limit=1)
-                    if parent:
-                        vals['parent_id'] = parent.id
-                        break
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'code' in vals and not vals.get('parent_id'):
+                for i in range(1, 10):
+                    parent_code = vals['code'][:-i]
+                    if parent_code:
+                        parent = self.env['account.account'].search([('code', '=', parent_code)], limit=1)
+                        if parent:
+                            vals['parent_id'] = parent.id
+                            break
 
-        if vals.get('parent_id') is False:
-            vals['tipo_conta'] = "GR"
+            if vals.get('parent_id') is False:
+                vals['tipo_conta'] = "GR"
 
-        account = super(AccountAccount, self).create(vals)
+        accounts = super(AccountAccount, self).create(vals_list)
 
-        if account.parent_id:
-            account.parent_id.tipo_conta = 'GA'
+        for account in accounts:
+            if account.parent_id:
+                account.parent_id.tipo_conta = 'GA'
 
-            siblings = self.env['account.account'].search([
-                ('code', '=like', account.code + '%'),
-                ('parent_id', '=', account.parent_id.id),
-                ('id', '!=', account.id)
-            ])
-            siblings.write({'parent_id': account.id})
+                siblings = self.env['account.account'].search([
+                    ('code', '=like', account.code + '%'),
+                    ('parent_id', '=', account.parent_id.id),
+                    ('id', '!=', account.id)
+                ])
+                siblings.write({'parent_id': account.id})
 
-        return account
+        return accounts
 
     def write(self, vals):
         parent_changed = 'parent_id' in vals
@@ -75,47 +76,3 @@ class AccountAccount(models.Model):
 
         return res
 
-    # --- Methods from l10n_ao_account ---
-    @api.model
-    def _search(self, domain, offset=0, limit=None, order=None, access_rights_uid=None):
-        always_show_cases = (
-            self._context.get('show_view_accounts') or
-            self._is_specific_case_that_needs_views()
-        )
-        if always_show_cases:
-            return super()._search(domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
-        
-        if not self._contains_view_account_filter(domain):
-            domain = expression.AND([domain, [('account_type', '!=', 'view')]])
-        
-        return super()._search(domain, offset=offset, limit=limit, order=order, access_rights_uid=access_rights_uid)
-    
-    
-    @api.model
-    def _contains_view_account_filter(self, domain):
-        for element in domain:
-            if isinstance(element, (list, tuple)) and len(element) == 3:
-                field, operator, value = element
-                if field == 'account_type':
-                    if operator == '=' and value == 'view':
-                        return True
-                    elif operator == '!=' and value == 'view':
-                        return True
-                    elif operator == 'in' and isinstance(value, (list, tuple)) and 'view' in value:
-                        return True
-                    elif operator == 'not in' and isinstance(value, (list, tuple)) and 'view' not in value:
-                        return True
-            elif isinstance(element, (list, tuple)):
-                if self._contains_view_account_filter(element):
-                    return True
-        return False
-
-    
-    def _is_specific_case_that_needs_views(self):
-        if self._context.get('check_translations'):
-            return True
-        
-        if self._context.get('print_chart_of_accounts'):
-            return True
-            
-        return False

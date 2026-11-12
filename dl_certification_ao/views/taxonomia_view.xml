@@ -31,7 +31,7 @@
                         <field name="end_date"/>
                     </group>
                     <field name="taxonomias">
-                        <tree editable="buttom">
+                        <tree editable="bottom">
                             <field name="name"/>
                             <field name="contas" widget="many2many_tags"/>
                         </tree>

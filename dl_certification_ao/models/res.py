@@ -165,49 +165,40 @@ class ResPartner(models.Model):
         result = super(ResPartner, self).write(vals)
         return result
 
-    @api.model
-    def create(self, vals):
-        """ Herança do método create da tabela res.partner
-            se o parceiro tiver um parent, ou seja, um parceiro pai
-            o valor do campo is_company é False
-            se o parceiro tiver o campo ref preenchido com '/', preencher
-            a sequência seguinte definida para os parceiros
-        """
-        if 'parent_id' in vals and vals['parent_id']:
-            vals['is_company'] = False
-        if vals.get('ref', '/') == '/' or vals.get('ref', '') == '':
-            vals['ref'] = self.env['ir.sequence'].get('parceiros.ref.seq.itc') or '/'
-
-        if 'vat' in vals:
-            if str(vals['vat']) == '':
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'parent_id' in vals and vals['parent_id']:
+                vals['is_company'] = False
+            if vals.get('ref', '/') == '/' or vals.get('ref', '') == '':
+                vals['ref'] = self.env['ir.sequence'].next_by_code('parceiros.ref.seq.itc') or '/'
+            if 'vat' in vals and str(vals['vat']) == '':
                 vals['vat'] = '999999999'
 
-            pass
-
-        partner = super(ResPartner, self).create(vals)
-
-        self._cr.execute("""
-            SELECT rc.validar_nif_duplicados
-            FROM res_partner rp, res_company rc
-            WHERE rp.company_id=rc.id and rp.id=%s""", (partner.id,))
-        validar_nif_duplicados = self._cr.fetchone()
-        if partner.vat != '999999999' and validar_nif_duplicados:
-            if partner.company_id and partner.company_id.id:
-                self._cr.execute("""
-                    SELECT id
-                    FROM res_partner
-                    WHERE vat = %s AND company_id = %s AND id != %s """,
-                                 (str(partner.vat), str(partner.company_id.id), str(partner.id)))
-            else:
-                self._cr.execute("""
-                    SELECT id
-                    FROM res_partner
-                    WHERE vat = %s AND and id != %s """, (str(partner.vat), str(partner.id)))
-            parent_partner_id = self._cr.fetchone()
-            if parent_partner_id and parent_partner_id[0]:
-                if validar_nif_duplicados[0] is not False:
-                    raise ValidationError(_("Ja existe um cliente com esse NIF."))
-        return partner
+        partners = super(ResPartner, self).create(vals_list)
+        for partner in partners:
+            self._cr.execute("""
+                SELECT rc.validar_nif_duplicados
+                FROM res_partner rp, res_company rc
+                WHERE rp.company_id=rc.id and rp.id=%s""", (partner.id,))
+            validar_nif_duplicados = self._cr.fetchone()
+            if partner.vat != '999999999' and validar_nif_duplicados:
+                if partner.company_id and partner.company_id.id:
+                    self._cr.execute("""
+                        SELECT id
+                        FROM res_partner
+                        WHERE vat = %s AND company_id = %s AND id != %s """,
+                                     (str(partner.vat), str(partner.company_id.id), str(partner.id)))
+                else:
+                    self._cr.execute("""
+                        SELECT id
+                        FROM res_partner
+                        WHERE vat = %s AND id != %s """, (str(partner.vat), str(partner.id)))
+                parent_partner_id = self._cr.fetchone()
+                if parent_partner_id and parent_partner_id[0]:
+                    if validar_nif_duplicados[0] is not False:
+                        raise ValidationError(_("Ja existe um cliente com esse NIF."))
+        return partners
 
     def nif_process(self, type):
         message = ''

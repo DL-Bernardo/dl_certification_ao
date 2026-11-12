@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version='1.0' encoding='UTF-8'?>
 <odoo>
 
         <record id="view_order_menu_so_id" model="ir.ui.view">
@@ -14,31 +14,19 @@
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//button[@name='action_quotation_send']" position="after">
-                    <button name="certify" type="object" string="Certify"
-                            invisible="certificated == True"
-                            confirm="After this action you can not change this sale order anymore. You will have to
-                                     create a new one or duplicate. Do you wish to proceed?" class="oe_highlight"/>
-                    <button name="action_quotation_send" type="object" string="Certify and Send Email"
-                            invisible="(certificated == True) or (state != 'draft')"
-                            confirm="After this action you can not change this sale order anymore. You will have to
-                                     create a new one or duplicate. Do you wish to proceed?" class="oe_highlight"/>
-                    <button name="action_print_quotation" string="Imprimir" type="object" class="oe_highlight" invisible="state == 'cancel'"/>
+                    <button name="certify" type="object" string="Certify" confirm="After this action you can not change this sale order anymore. You will have to                                      create a new one or duplicate. Do you wish to proceed?" class="oe_highlight" attrs="{'invisible': [('certificated', '=', True)]}"/>
+                    <button name="action_quotation_send" type="object" string="Certify and Send Email" confirm="After this action you can not change this sale order anymore. You will have to                                      create a new one or duplicate. Do you wish to proceed?" class="oe_highlight" attrs="{'invisible': ['|', ('certificated', '=', True), ('state', '!=', 'draft')]}"/>
+                    <button name="action_print_quotation" string="Imprimir" type="object" class="oe_highlight" attrs="{'invisible': [('state', '=', 'cancel')]}"/>
                 </xpath>
                 <xpath expr="//button[@name='action_quotation_send'][2]" position="replace">
-                    <button name="action_quotation_send" string="Enviar por Email" type="object"
-                            confirm="After this action you can not change this sale order anymore. You will have to
-                                     create a new one or duplicate. Do you wish to proceed?"
-                            invisible="(certificated == True) or (state not in ('sent','sale'))"/>
-                    <button name="action_quotation_send" string="Enviar por Email" type="object"
-                            invisible="certificated != True"/>
+                    <button name="action_quotation_send" string="Enviar por Email" type="object" confirm="After this action you can not change this sale order anymore. You will have to                                      create a new one or duplicate. Do you wish to proceed?" attrs="{'invisible': ['|', ('certificated', '=', True), ('state', 'not in', ('sent', 'sale'))]}"/>
+                    <button name="action_quotation_send" string="Enviar por Email" type="object" attrs="{'invisible': [('certificated', '!=', True)]}"/>
                 </xpath>
                 <field name="require_payment" position="after">
-                    <field name="descricao_cancel"
-                           readonly="state == 'cancel'"
-                           invisible="state != 'cancel'"/>
-                    <field name="old_name_quotation" invisible="old_name_quotation == False"/>
-                    <field name="old_name_proforma" invisible="old_name_proforma == False"/>
-                    <field name="old_name" invisible="old_name == False"/>
+                    <field name="descricao_cancel" attrs="{'invisible': [('state', '!=', 'cancel')], 'readonly': [('state', '=', 'cancel')]}"/>
+                    <field name="old_name_quotation" attrs="{'invisible': [('old_name_quotation', '=', False)]}"/>
+                    <field name="old_name_proforma" attrs="{'invisible': [('old_name_proforma', '=', False)]}"/>
+                    <field name="old_name" attrs="{'invisible': [('old_name', '=', False)]}"/>
                 </field>
                 <xpath expr="//group[@name='partner_details']" position="inside">
                     <field name="isprinted" readonly="1"/>
@@ -54,7 +42,7 @@
             <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
             <field name="arch" type="xml">
                 <xpath expr="//tree" position="inside">
-                    <field name="certificated" />
+                    <field name="certificated"/>
                 </xpath>
             </field>
         </record>
@@ -70,16 +58,10 @@
             <field name="context">{'search_default_my_quotation': 1, 'default_type_doc': 'PP'}</field>
             <field name="domain">[('type_doc', '=', 'PP'),('state', 'not in', ('sale', 'done'))]</field>
         </record>
-        <menuitem id="menu_sale_proforma"
-                action="action_proforma_with_onboarding"
-                parent="sale.sale_order_menu"
-                sequence="1" groups="sales_team.group_sale_salesman"/>
+        <menuitem id="menu_sale_proforma" action="action_proforma_with_onboarding" parent="sale.sale_order_menu" sequence="1" groups="sales_team.group_sale_salesman"/>
 
 <!--        Quotations Page-->
-        <menuitem id="sale.menu_sale_quotations"
-                action="sale.action_quotations_with_onboarding"
-                parent="sale.sale_order_menu"
-                sequence="1" groups="sales_team.group_sale_salesman"/>
+        <menuitem id="sale.menu_sale_quotations" action="sale.action_quotations_with_onboarding" parent="sale.sale_order_menu" sequence="1" groups="sales_team.group_sale_salesman"/>
         <record id="sale.action_quotations_with_onboarding" model="ir.actions.act_window">
             <field name="name">Quotations</field>
             <field name="type">ir.actions.act_window</field>
@@ -126,10 +108,7 @@
             <field name="inherit_id" ref="sale.view_sales_order_filter"/>
             <field name="arch" type="xml">
                     <xpath expr="//field[@name='name']" position="replace">
-                        <field name="name" string="Sales Order"
-                               filter_domain="['|', '|', '|', '|',('name', 'ilike', self), ('partner_id.name', 'ilike', self),
-                                ('old_name', 'ilike', self), ('old_name_quotation', 'ilike', self),
-                                ('old_name_proforma', 'ilike', self)]"/>
+                        <field name="name" string="Sales Order" filter_domain="['|', '|', '|', '|',('name', 'ilike', self), ('partner_id.name', 'ilike', self),                                 ('old_name', 'ilike', self), ('old_name_quotation', 'ilike', self),                                 ('old_name_proforma', 'ilike', self)]"/>
                     </xpath>
             </field>
         </record>
