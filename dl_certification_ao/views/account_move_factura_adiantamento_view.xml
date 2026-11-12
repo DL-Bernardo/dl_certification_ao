@@ -6,7 +6,7 @@
         <record id="action_move_out_invoice_factura_adiantamento" model="ir.actions.act_window">
             <field name="name">Factura de Adiantamento</field>
             <field name="res_model">account.move</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">list,form</field>
             <field name="domain">[('move_type', '=', 'out_invoice'), ('journal_id.saft_inv_type', '=', 'FA')]</field>
             <field name="context" eval="{'default_move_type': 'out_invoice'}"/>
             <field name="search_view_id" ref="account.view_account_invoice_filter"/>

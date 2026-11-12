@@ -363,7 +363,7 @@ class WizardSaft(models.Model):
                 et.SubElement(elemento, 'ClosingDebitBalance').text = "0.00"
                 et.SubElement(elemento, 'ClosingCreditBalance').text = "0.00"
 
-                conta = self.env['account.account'].search([('code', '=', code), ('company_id', '=', self.comp.id)],
+                conta = self.env['account.account'].search([('code', '=', code), ('company_ids', 'in', self.comp.ids)],
                                                            limit=1)
                 et.SubElement(elemento, 'GroupingCategory').text = conta.tipo_conta
 

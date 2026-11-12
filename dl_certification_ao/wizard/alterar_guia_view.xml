@@ -6,7 +6,6 @@
         <record id="form_wizard_alterar_guia" model="ir.ui.view">
             <field name="name">Alterar guia cancelada</field>
             <field name="model">wizard.alterar.guia</field>
-            <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Alterar guia cancelada">
                     <notebook>

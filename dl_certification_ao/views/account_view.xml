@@ -21,14 +21,14 @@
       <field name="name">account.account.tree.hierarchy</field>
       <field name="model">account.account</field>
       <field name="arch" type="xml">
-        <tree string="Plano de Contas">
+        <list string="Plano de Contas">
           <field name="code"/>
           <field name="name"/>
           <field name="tipo_conta"/>
           <field name="parent_id" optional="hide"/>
           <field name="account_type"/>
-          <field name="company_id" groups="base.group_multi_company"/>
-        </tree>
+          <field name="company_ids" widget="many2many_tags" groups="base.group_multi_company"/>
+        </list>
       </field>
     </record>
 

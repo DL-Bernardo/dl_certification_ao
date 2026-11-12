@@ -6,7 +6,6 @@
         <record id="form_wizard_recall_at" model="ir.ui.view">
             <field name="name">wizard.recall.at</field>
             <field name="model">wizard.recall.at</field>
-            <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Reenviar">
                     <button icon="gtk-ok" colspan="1" name="act_recall" string="Reenviar pedidos" type="object"/>

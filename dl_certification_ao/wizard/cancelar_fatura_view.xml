@@ -6,7 +6,6 @@
         <record id="wizard_cancelar_fatura_form" model="ir.ui.view">
             <field name="name">Motivo do Cancelamento</field>
             <field name="model">wizard.cancelar.fatura</field>
-            <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Motivo do Cancelamento">
                     <group>
@@ -45,7 +44,6 @@
             <field name="name">view_account_move_reversal_required_reason</field>
             <field name="model">account.move.reversal</field>
             <field name="inherit_id" ref="account.view_account_move_reversal"/>
-            <field name="type">form</field>
             <field name="arch" type="xml">
                 <field name="reason" position="attributes">
                     <attribute name="required">1</attribute>

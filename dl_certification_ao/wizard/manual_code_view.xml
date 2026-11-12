@@ -6,7 +6,6 @@
         <record id="form_at_code_manual" model="ir.ui.view">
             <field name="name">AT CODE Manual</field>
             <field name="model">wizard.manual.code</field>
-            <field name="type">form</field>
             <field name="arch" type="xml">
                 <form col="3" string="Manul AT-CODE">
                     <notebook>

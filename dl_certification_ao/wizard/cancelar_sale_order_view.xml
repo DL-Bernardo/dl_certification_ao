@@ -6,7 +6,6 @@
         <record id="wizard_cancelar_so_form" model="ir.ui.view">
             <field name="name">Motivo do Cancelamento</field>
             <field name="model">wizard.cancelar.sale</field>
-            <field name="type">form</field>
             <field name="arch" type="xml">
                 <form string="Motivo do Cancelamento">
                     <group>

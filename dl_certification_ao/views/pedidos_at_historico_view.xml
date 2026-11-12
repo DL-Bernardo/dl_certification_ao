@@ -27,14 +27,14 @@
             <field name="name">Pedidos Finanças</field>
             <field name="model">pedidos.at.historico</field>
             <field name="arch" type="xml">
-                <tree string="Pedidos Finanças">
+                <list string="Pedidos Finanças">
                     <field name="name"/>
                     <field name="at_code"/>
                     <field name="codigo_erro"/>
                     <field name="msg_erro"/>
                     <field name="doc_state"/>
                     <field name="user_id"/>
-                </tree>
+                </list>
             </field>
         </record>
 
@@ -42,7 +42,7 @@
             <field name="name">Pedidos Finanças</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">pedidos.at.historico</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">list,form</field>
             <field name="view_id" ref="pedidos_financas_tree"/>
         </record>
 

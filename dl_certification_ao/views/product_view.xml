@@ -21,13 +21,13 @@
             <field name="arch" type="xml">
                 <field name="taxes_id" position="after">
                     <field name="property_account_refund_income_id"
-                           domain="[('account_type','=','income_other'),('deprecated','=',False)]"
-                           groups="account.group_account_user"/>
+                           domain="[('account_type','=','income_other')]"
+                           groups="account.group_account_invoice"/>
                 </field>
                 <field name="supplier_taxes_id" position="after">
                     <field name="property_account_refund_expense_id"
-                           domain="[('account_type','=','expense'),('deprecated','=',False)]"
-                           groups="account.group_account_user"/>
+                           domain="[('account_type','=','expense')]"
+                           groups="account.group_account_invoice"/>
                 </field>
                 <field name="type" position="after">
                     <field name="tipo_produto_id" widget="selection"

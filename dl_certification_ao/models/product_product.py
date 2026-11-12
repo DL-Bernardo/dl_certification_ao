@@ -101,12 +101,12 @@ class ProductTemplate(models.Model):
 
     property_account_refund_income_id = fields.Many2one('account.account', company_dependent=True,
                                                         string="Conta de Notas de Credito Clientes",
-                                                        domain=[('deprecated', '=', False)],
+                                                        
                                                         help="Conta usada por defeito em notas de credito de clientes.")
 
     property_account_refund_expense_id = fields.Many2one('account.account', company_dependent=True,
                                                          string="Conta de Notas de Credito Fornecedores",
-                                                         domain=[('deprecated', '=', False)],
+                                                         
                                                          help="Conta usada por defeito em notas de credito de clientes.")
 
     tipo_produto_id = fields.Many2one('tipo.produto.saft', string='Tipo Produto Saft', copy=False,

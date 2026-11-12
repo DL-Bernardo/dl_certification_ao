@@ -7,8 +7,8 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_bank_id']" position="after">
                 <field name="modo_pagar_vd"
-                       invisible="['|', ('journal_id.saft_inv_type', '!=', 'FR'), ('journal_id.paga_me', '=', False)]"
-                       required="[('journal_id.saft_inv_type', '=', 'FR'), ('journal_id.paga_me', '=', True)]"
+                       invisible="move_type != 'out_invoice'"
+                       
                        readonly="state != 'draft'"/>
             </xpath>
         </field>
