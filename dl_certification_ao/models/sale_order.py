@@ -88,9 +88,9 @@ class SaleOrder(models.Model):
                 atcud = sale.atcud
                 espaco_fiscal = 'PT'
                 for order_line in sale.order_line:
-                    for tax_id in order_line.tax_id:
-                        if tax_id.country_region != 'PT':
-                            espaco_fiscal = tax_id.country_region
+                    for tax_ids in order_line.tax_ids:
+                        if tax_ids.country_region != 'PT':
+                            espaco_fiscal = tax_ids.country_region
 
                 valor_base_isento = 0
                 valor_base_red = 0
@@ -142,8 +142,8 @@ class SaleOrder(models.Model):
             res = {}
             for line in order.order_line:
                 price_reduce = line.price_unit * (1.0 - line.discount / 100.0)
-                taxes = line.tax_id.compute_all(price_reduce, quantity=line.product_uom_qty, product=line.product_id, partner=order.partner_shipping_id)['taxes']
-                for tax in line.tax_id:
+                taxes = line.tax_ids.compute_all(price_reduce, quantity=line.product_uom_qty, product=line.product_id, partner=order.partner_shipping_id)['taxes']
+                for tax in line.tax_ids:
                     group = tax.tax_group_id
                     res.setdefault(group, {'amount': 0.0, 'base': 0.0})
                     for t in taxes:
@@ -243,7 +243,7 @@ class SaleOrder(models.Model):
             for line in self.order_line:
                 if line.product_id:
                     line_no += 1
-                if not line.tax_id:
+                if not line.tax_ids:
                     if line.product_id:
                         raise ValidationError('Erro ao validar. \n Todas as linhas tem de ter imposto.')
             if line_no == 0:
@@ -351,28 +351,13 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
-    @api.depends('product_uom_qty', 'discount', 'price_unit', 'tax_id')
-    def _compute_amount(self):
-        for line in self:
-            price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-
-            taxes = line.tax_id.compute_all(
-                price,
-                currency=line.order_id.currency_id,
-                quantity=line.product_uom_qty,
-                product=line.product_id,
-                partner=line.order_id.partner_shipping_id
-            )
-
-            line.price_total = taxes['total_included']
-            line.price_subtotal = taxes['total_excluded']
-            line.price_tax = taxes['total_included'] - taxes['total_excluded']
+    
 
     # nao permitir mais do que um imposto nas linhas dos orcamentos
-    @api.constrains('tax_id')
-    def _constraint_tax_id_one_tax(self):
+    @api.constrains('tax_ids')
+    def _constraint_tax_ids_one_tax(self):
         for sale_line in self:
-            if len(sale_line.tax_id) >= 2:
+            if len(sale_line.tax_ids) >= 2:
                 raise ValueError(_('Está a utilizar mais do que um imposto!'))
             return True
 
