@@ -14,7 +14,7 @@ Core de Certificação Fiscal da DIGITALUB para o mercado de Angola.
     'author': "DIGITALUB ANGOLA, LDA",
     'website': "https://www.digitalub.ao",
     'category': 'Accounting/Localizations',
-    'version': '18.0.1.0.5',
+    'version': '19.0.1.0.5',
     'license': 'OPL-1',  # Licença comercial proprietária para venda na Odoo Store
     'price': 749.0,     # Preço sugerido em Euros/Dólares na plataforma
     'currency': 'USD',   # Moeda padrão da loja de aplicativos do Odoo
@@ -25,7 +25,6 @@ Core de Certificação Fiscal da DIGITALUB para o mercado de Angola.
         'sale', 
         'stock', 
         'sale_stock', 
-        'l10n_ao_account', 
         'web',
         'base_vat', 
         'delivery', 
