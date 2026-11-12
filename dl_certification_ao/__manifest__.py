@@ -25,7 +25,6 @@ Core de Certificação Fiscal da DIGITALUB para o mercado de Angola.
         'sale', 
         'stock', 
         'sale_stock', 
-        'l10n_ao_account', 
         'web',
          
         'delivery', 
